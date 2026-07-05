@@ -1,0 +1,36 @@
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: sub-wave-navidrome
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4533:4533"
+    environment:
+      - ND_SCANSCHEDULE=1m
+      - ND_SESSIONTIMEOUT=24h
+      - ND_LOGLEVEL=info
+    volumes:
+      - ./music:/music:ro
+      - ./state/navidrome:/data
+  caddy:
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./pwa:/srv/pwa:ro
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sub-wave-ollama
+    restart: unless-stopped
+    volumes:
+      - ./state/ollama:/root/.ollama
+  broadcast:
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./liquidsoap/radio.liq:/etc/liquidsoap/radio.liq:ro
+  controller:
+    volumes:
+      - ./controller/context.ts:/app/src/context.ts:ro
+      - ./controller/tts.ts:/app/src/audio/tts.ts:ro
+      - ./controller/dj.ts:/app/src/routes/dj.ts:ro
+      - ./controller/request.ts:/app/src/routes/request.ts:ro
+      - ./controller/dj_llm.ts:/app/src/llm/dj.ts:ro

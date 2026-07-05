@@ -1,0 +1,37 @@
+# Secrets — never commit credentials
+.env
+*.env
+!.env.example
+
+# Music & audio libraries — copyrighted content stays out of git
+*.mp3
+*.m4a
+*.wav
+*.flac
+*.aac
+*.ogg
+music/
+bloques/
+baladas/
+
+# Runtime state (playlists, logs, caches written by the running station)
+state/
+*.log
+*.m3u
+*_state.json
+placas_review.json
+
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Backups
+*.bak
+*.bak2

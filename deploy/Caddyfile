@@ -1,0 +1,52 @@
+# Caddy edge router for Kultura Radio — HTTPS automático (Let's Encrypt).
+# Raíz = la PWA de Kultura (estática). /admin y /onboarding siguen en el
+# Next.js de SUB/WAVE; /api → controller; /stream → broadcast.
+{
+	email frpenalo@gmail.com
+}
+
+kulturaradio.com, www.kulturaradio.com {
+	# Stream en vivo (Icecast, sin buffer)
+	@streams path /stream.mp3 /stream.opus
+	handle @streams {
+		reverse_proxy broadcast:7702 {
+			flush_interval -1
+			transport http {
+				read_buffer 16KB
+				response_header_timeout 30s
+				dial_timeout 5s
+			}
+		}
+	}
+
+	# API del controller (prefijo /api eliminado)
+	handle_path /api/* {
+		reverse_proxy controller:7701
+	}
+
+	# Panel admin + onboarding + assets de Next → web (SUB/WAVE)
+	@subwave path /admin* /onboarding* /_next/*
+	handle @subwave {
+		reverse_proxy web:7700
+	}
+
+	# Todo lo demás → la PWA de Kultura Radio (estática)
+	handle {
+		# Sin esto, Safari iOS aplica caché heurístico (10% del tiempo desde
+		# Last-Modified) y sirve el index/app.js VIEJO por días sin consultar
+		# el servidor — los oyentes quedaban corriendo código antiguo tras cada
+		# deploy. no-cache = siempre revalidar (ETag → 304, barato).
+		header Cache-Control "no-cache, must-revalidate"
+		root * /srv/pwa
+		try_files {path} /index.html
+		file_server
+	}
+
+	@compressible not path /stream.mp3 /stream.opus
+	encode @compressible gzip zstd
+
+	log {
+		output stdout
+		format console
+	}
+}
