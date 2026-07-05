@@ -481,6 +481,11 @@ radio = switch(id="madrugada", track_sensitive=false, [
 # ---------------------------------------------------------------------------
 live_dj = input.harbor(
   id="livedj",
+  # Buffer corto: el default de Liquidsoap es 12s — el DJ conectaba y el aire
+  # no cambiaba en 12 segundos (parecia roto). Con 2s el takeover es casi
+  # inmediato; max mantiene margen contra jitter de red del DJ.
+  buffer=2.0,
+  max=10.0,
   port=8090,
   password=environment.get(default="change-me", "LIVE_DJ_PASSWORD"),
   on_connect=fun(_) -> log("LIVE DJ conectado — al aire"),
