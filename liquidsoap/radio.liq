@@ -479,6 +479,33 @@ radio = switch(id="madrugada", track_sensitive=false, [
 # esté conectado toma el aire (track_sensitive=false = corta de una); al
 # desconectarse, la radio-IA retoma sola. Pasa por el limitador final igual.
 # ---------------------------------------------------------------------------
+# --- DJ EN VIVO: refleja al DJ humano en el now-playing (badge + titulo) ---
+# last_np guarda el ultimo now-playing de la IA para restaurarlo al desconectar.
+last_np = ref("")
+
+def dj_name() =
+  if file.exists("/var/sub-wave/live-dj-name.txt") then
+    n = string.trim(file.contents("/var/sub-wave/live-dj-name.txt"))
+    if n != "" then n else "DJ en vivo" end
+  else
+    "DJ en vivo"
+  end
+end
+
+def write_live_np(title) =
+  ts = int_of_float(time())
+  j = json.stringify(compact=true, {
+    title = title,
+    artist = dj_name(),
+    album = "En vivo - Kultura Radio",
+    live = true,
+    subsonic_id = "",
+    filename = "",
+    timestamp = ts
+  })
+  file.write(data=j, "/var/sub-wave/now-playing.json")
+end
+
 live_dj = input.harbor(
   id="livedj",
   # Buffer corto: el default de Liquidsoap es 12s — el DJ conectaba y el aire
@@ -488,11 +515,24 @@ live_dj = input.harbor(
   max=10.0,
   port=8090,
   password=environment.get(default="change-me", "LIVE_DJ_PASSWORD"),
-  on_connect=fun(_) -> log("LIVE DJ conectado — al aire"),
-  on_disconnect=fun() -> log("LIVE DJ desconectado — vuelve la IA"),
+  on_connect=fun(_) -> begin log("LIVE DJ conectado — al aire") write_live_np("En vivo") end,
+  on_disconnect=fun() -> begin
+    log("LIVE DJ desconectado — vuelve la IA")
+    if last_np() != "" then
+      file.write(data=last_np(), "/var/sub-wave/now-playing.json")
+    else
+      file.write(data=json.stringify(compact=true, {title="Kultura Radio", artist="la que nos une", album="Kultura Radio", live=false, subsonic_id="", filename="", timestamp=int_of_float(time())}), "/var/sub-wave/now-playing.json")
+    end
+  end,
   "live"
 )
 radio = fallback(track_sensitive=false, [live_dj, radio])
+
+# El DJ en vivo manda su propio "ahora suena" por ICY (StreamTitle).
+live_dj.on_metadata(fun(m) -> begin
+  t = m["title"]
+  if t != "" then write_live_np(t) end
+end)
 
 # ---------------------------------------------------------------------------
 # BROADCAST BUS — masters preserved, brick-wall as the only safety
@@ -564,6 +604,7 @@ def on_meta(m) =
       timestamp = ts
     })
     file.write(data=json, "/var/sub-wave/now-playing.json")
+    last_np := json
     # Push the same metadata onto the Icecast stream so the ICY title
     # tracks the current song instead of lagging a transition behind.
     radio.insert_metadata([

@@ -95,7 +95,13 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var np = (d && d.nowPlaying) || {}, ctx = (d && d.context) || {};
+        var live = !!np.live;
         var t = np.title || "Kultura Radio", a = np.artist || "la que nos une";
+        // Badge "EN VIVO" cuando un DJ humano toma el aire (Liquidsoap marca
+        // live:true en el now-playing). Barato de togglear en cada poll.
+        var onair = $("onair"), lbl = $("npLabel");
+        if (onair) onair.style.display = live ? "inline-flex" : "none";
+        if (lbl) lbl.style.display = live ? "none" : "";
         if (t !== current) {
           current = t;
           $("npTitle").textContent = t; $("npArtist").textContent = a;
