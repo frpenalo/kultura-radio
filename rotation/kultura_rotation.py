@@ -26,18 +26,22 @@ RECENT_KEEP = 300   # ventana de no-repetir (mas alto = tardan mas en volver)
 def daypart(now):
     wd = now.weekday()
     h = now.hour
-    # Core tropical (salsa/merengue/bachata) domina TODO el dia; urbano
-    # (reggaeton/dembow) solo de acento (~25% max) en La Ruta y Reventon.
-    if wd in (4, 5) and h >= 20:
-        return ("Reventon", {"Merengue": 30, "Salsa": 25, "Bachata": 20, "Reggaeton": 15, "Dembow": 10})
+    # CONCEPTO (ago 2026): Kultura = musica TROPICAL. Salsa/merengue/bachata
+    # dominan TODO el dia sin urbano. El reggaeton/dembow queda rezagado a UN
+    # solo bloque nocturno: Zona Urbana, 7-8pm — fieles al concepto.
+    if h == 19:
+        return ("Zona Urbana", {"Reggaeton": 55, "Dembow": 45})
+    if wd in (4, 5) and 20 <= h < 23:
+        # Fiesta tropical de fin de semana — energia alta, cero urbano.
+        return ("Reventon", {"Merengue": 45, "Salsa": 35, "Bachata": 20})
     if 6 <= h < 10:
         return ("Kultura Despierta", {"Merengue": 40, "Salsa": 40, "Bachata": 20})
     if 10 <= h < 15:
-        return ("Kultura Mix", {"Salsa": 30, "Merengue": 30, "Bachata": 25, "Reggaeton": 10, "Dembow": 5})
+        return ("Kultura Mix", {"Salsa": 35, "Merengue": 35, "Bachata": 30})
     if 15 <= h < 19:
-        return ("La Ruta", {"Merengue": 30, "Salsa": 25, "Bachata": 20, "Reggaeton": 15, "Dembow": 10})
-    if 19 <= h < 23:
-        return ("Sabor / Noche", {"Salsa": 35, "Merengue": 30, "Bachata": 25, "Dembow": 10})
+        return ("La Ruta", {"Merengue": 35, "Salsa": 30, "Bachata": 35})
+    if 20 <= h < 23:
+        return ("Sabor / Noche", {"Salsa": 40, "Merengue": 30, "Bachata": 30})
     return ("Kultura Nights", {"Bachata": 45, "Salsa": 45, "Merengue": 10})
 
 def sub_qs(extra):
