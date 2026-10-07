@@ -468,7 +468,40 @@ radio = blank.skip(max_blank=5.0, radio)
 # ---------------------------------------------------------------------------
 baladas = playlist(id="baladas", mode="randomize", reload_mode="watch", "/var/sub-wave/baladas.m3u")
 baladas = normalize(target=-15., lufs=true, up=2., down=2., baladas)
-radio = switch(id="madrugada", track_sensitive=false, [
+
+# Ultimo now-playing que escribio la IA (lo llena on_meta, mas abajo). Se usa
+# aqui al salir de madrugada y en el live-DJ al desconectar.
+last_np = ref("")
+
+def np_madrugada() =
+  ts = int_of_float(time())
+  j = json.stringify(compact=true, {
+    title = "Baladas de Madrugada",
+    artist = "Kultura Radio",
+    album = "Kultura Radio",
+    subsonic_id = "",
+    filename = "",
+    timestamp = ts
+  })
+  file.write(data=j, "/var/sub-wave/now-playing.json")
+end
+
+# Fundido de 3s entre franjas: a medianoche el mix de baladas RESUME congelado
+# a mitad (no hay inicio de pista, no dispara metadata), asi que la transicion
+# misma escribe el now-playing; al salir (6am) restaura el titulo de la
+# rotacion, que tambien resume la cancion que quedo a mitad.
+def tr_entra_baladas(a, b) =
+  np_madrugada()
+  add(normalize=false, [fade.out(duration=3., a), fade.in(duration=3., b)])
+end
+
+def tr_vuelve_rotacion(a, b) =
+  if last_np() != "" then file.write(data=last_np(), "/var/sub-wave/now-playing.json") end
+  add(normalize=false, [fade.out(duration=3., a), fade.in(duration=3., b)])
+end
+
+radio = switch(id="madrugada", track_sensitive=false,
+  transitions=[tr_entra_baladas, tr_vuelve_rotacion], [
   ({ 0h-6h }, baladas),
   ({true}, radio)
 ])
@@ -480,8 +513,7 @@ radio = switch(id="madrugada", track_sensitive=false, [
 # desconectarse, la radio-IA retoma sola. Pasa por el limitador final igual.
 # ---------------------------------------------------------------------------
 # --- DJ EN VIVO: refleja al DJ humano en el now-playing (badge + titulo) ---
-# last_np guarda el ultimo now-playing de la IA para restaurarlo al desconectar.
-last_np = ref("")
+# (la ref last_np se define antes del switch de madrugada)
 
 def dj_name() =
   if file.exists("/var/sub-wave/live-dj-name.txt") then
