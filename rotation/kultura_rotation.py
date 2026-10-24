@@ -52,13 +52,22 @@ def sub_qs(extra):
     return urllib.parse.urlencode(base)
 
 def get_songs(genre, count=500):
-    url = NAV_QUERY + "/rest/getSongsByGenre?" + sub_qs({"genre": genre, "count": count})
-    try:
-        d = json.load(urllib.request.urlopen(url, timeout=30))
-        return d["subsonic-response"].get("songsByGenre", {}).get("song", []) or []
-    except Exception as e:
-        print("genre fetch error", genre, e)
-        return []
+    # Subsonic entrega maximo 500 por llamada; con pools mayores hay que
+    # PAGINAR o la cola de las canciones jamas rota.
+    songs, offset = [], 0
+    while True:
+        url = NAV_QUERY + "/rest/getSongsByGenre?" + sub_qs({"genre": genre, "count": count, "offset": offset})
+        try:
+            d = json.load(urllib.request.urlopen(url, timeout=30))
+            page = d["subsonic-response"].get("songsByGenre", {}).get("song", []) or []
+        except Exception as e:
+            print("genre fetch error", genre, e)
+            break
+        songs.extend(page)
+        if len(page) < count:
+            break
+        offset += count
+    return songs
 
 def esc(s):
     return (s or "").replace('"', "").replace("\n", " ").replace(":", " ").strip()
