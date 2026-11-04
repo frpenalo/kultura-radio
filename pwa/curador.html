@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Curador · Kultura Radio</title>
+<link rel="icon" href="/icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#071725;--navy2:#0c2234;--tinta:#f4f7fb;--suave:#aebdca;--oro:#e8b04b;
+    --linea:rgba(244,247,251,.12);--rojo:#e11d2e;--verde:#3ecf8e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy);color:var(--tinta);font-family:Outfit,system-ui,sans-serif;padding:18px 14px 60px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-family:Fraunces,serif;font-size:26px;margin-bottom:4px}
+  h1 em{color:var(--oro);font-style:normal}
+  .sub{color:var(--suave);font-size:13.5px;margin-bottom:18px}
+  .barra{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  input[type=search]{flex:1;min-width:200px;padding:10px 14px;border-radius:10px;border:1px solid var(--linea);
+    background:var(--navy2);color:var(--tinta);font:15px Outfit}
+  .chip{padding:7px 13px;border-radius:999px;border:1px solid var(--linea);background:var(--navy2);
+    color:var(--suave);font:500 13px Outfit;cursor:pointer}
+  .chip.on{background:var(--oro);color:#071725;border-color:var(--oro)}
+  .acciones{display:flex;gap:8px;margin:10px 0 16px;flex-wrap:wrap}
+  .btn{padding:9px 14px;border-radius:10px;border:0;background:var(--navy2);color:var(--tinta);
+    font:500 13.5px Outfit;cursor:pointer;border:1px solid var(--linea)}
+  .btn.oro{background:var(--oro);color:#071725;border-color:var(--oro)}
+  .btn.rojo{background:rgba(225,29,46,.15);color:#ff8d98;border-color:rgba(225,29,46,.4)}
+  .fila{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+    background:var(--navy2);border:1px solid var(--linea);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+  .fila .t{font-weight:600;font-size:15px}
+  .fila .a{color:var(--suave);font-size:12.5px;margin-top:2px}
+  .fila .carp{color:#5a7187;font-size:11px;margin-top:3px;font-family:ui-monospace,Consolas,monospace}
+  .ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  select{padding:7px 9px;border-radius:8px;background:var(--navy);color:var(--tinta);
+    border:1px solid var(--linea);font:13px Outfit}
+  .mini{padding:7px 10px;border-radius:8px;border:1px solid var(--linea);background:var(--navy);
+    color:var(--tinta);font:13px Outfit;cursor:pointer}
+  .mini.rojo{color:#ff8d98;border-color:rgba(225,29,46,.4)}
+  .mini.ok{color:var(--verde);border-color:rgba(62,207,142,.4)}
+  .estado{color:var(--suave);font-size:13px;margin:8px 0}
+  audio{height:30px;max-width:230px}
+  .editor{grid-column:1/-1;display:none;gap:6px;flex-wrap:wrap}
+  .editor.abierto{display:flex}
+  .editor input{padding:7px 9px;border-radius:8px;border:1px solid var(--linea);
+    background:var(--navy);color:var(--tinta);font:13px Outfit;flex:1;min-width:140px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Curador <em>Kultura</em></h1>
+  <p class="sub">La radio se guía por la ETIQUETA de género del archivo, no por la carpeta.
+  Corrige aquí y dale "Re-escanear" al terminar la tanda. Borrar manda a la papelera
+  (reversible hasta que la vacíes).</p>
+
+  <div class="barra">
+    <input type="search" id="q" placeholder="Buscar canción o artista...">
+    <span id="chips"></span>
+  </div>
+  <div class="acciones">
+    <button class="btn oro" id="rescan">Re-escanear biblioteca</button>
+    <button class="btn" id="masBtn" style="display:none">Cargar más</button>
+    <button class="btn rojo" id="vaciarBtn">Vaciar papelera (<span id="papCount">0</span>)</button>
+  </div>
+  <div class="barra">
+    <button class="chip" id="tabCanciones">Canciones</button>
+    <button class="chip" id="tabVoces">🎙 Voces (WhatsApp)</button>
+  </div>
+  <div class="estado" id="estado">Elige un género o busca algo.</div>
+  <div id="lista"></div>
+</div>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var GENEROS=["Salsa","Merengue","Bachata","Reggaeton","Dembow","Bolero","Balada"];
+  var genero="",offset=0,buscando=null;
+
+  GENEROS.forEach(function(g){
+    var b=document.createElement("button");
+    b.className="chip";b.textContent=g;
+    b.onclick=function(){
+      genero=(genero===g)?"":g;offset=0;$("q").value="";
+      document.querySelectorAll(".chip").forEach(function(c){c.classList.toggle("on",c.textContent===genero)});
+      cargar(false);
+    };
+    $("chips").appendChild(b);
+  });
+
+  function fila(s){
+    var d=document.createElement("div");d.className="fila";
+    var carp=s.path.replace("/opt/subwave/music/","").split("/").slice(0,-1).join("/")||"(raíz)";
+    d.innerHTML='<div><div class="t"></div><div class="a"></div><div class="carp"></div></div>'+
+      '<div class="ctl"><select></select>'+
+      '<button class="mini">✎</button><button class="mini">▶</button>'+
+      '<button class="mini ok">Guardar</button><button class="mini rojo">🗑</button></div>'+
+      '<div class="editor"><input placeholder="Título"><input placeholder="Artista"><input placeholder="Álbum"></div>';
+    d.querySelector(".t").textContent=s.title||"(sin título)";
+    d.querySelector(".a").textContent=(s.artist||"¿?")+(s.album?" · "+s.album:"")+(s.year?" · "+s.year:"");
+    d.querySelector(".carp").textContent="carpeta: "+carp+" | etiqueta: "+(s.genre||"sin género");
+    var sel=d.querySelector("select");
+    GENEROS.forEach(function(g){var o=document.createElement("option");o.value=g;o.textContent=g;
+      if(g===s.genre)o.selected=true;sel.appendChild(o)});
+    if(GENEROS.indexOf(s.genre)<0){var o=document.createElement("option");o.value="";o.textContent=s.genre||"(sin)";
+      o.selected=true;sel.insertBefore(o,sel.firstChild)}
+    var bots=d.querySelectorAll(".mini");
+    var ed=d.querySelector(".editor"),ins=ed.querySelectorAll("input");
+    ins[0].value=s.title||"";ins[1].value=s.artist||"";ins[2].value=s.album||"";
+    bots[0].onclick=function(){ed.classList.toggle("abierto")};
+    bots[1].onclick=function(){
+      if(d.querySelector("audio")){d.querySelector("audio").remove();return}
+      var au=document.createElement("audio");au.controls=true;au.src="/api/curador/oir?id="+encodeURIComponent(s.id);
+      au.autoplay=true;d.querySelector(".ctl").appendChild(au);
+    };
+    bots[2].onclick=function(){
+      fetch("/api/curador/editar",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({id:s.id,genre:sel.value,title:ins[0].value,artist:ins[1].value,album:ins[2].value})})
+        .then(function(r){return r.json()})
+        .then(function(x){bots[2].textContent=x.ok?"✓":"error";setTimeout(function(){bots[2].textContent="Guardar"},1500)})
+        .catch(function(){bots[2].textContent="error"});
+    };
+    bots[3].onclick=function(){
+      if(!confirm('¿Mandar "'+(s.title||"?")+'" a la papelera?'))return;
+      fetch("/api/curador/borrar",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({id:s.id})})
+        .then(function(r){return r.json()})
+        .then(function(x){if(x.ok){d.remove();papelera()}})
+        .catch(function(){});
+    };
+    return d;
+  }
+
+  function cargar(append){
+    var q=$("q").value.trim();
+    var url="/api/curador/lista?"+(q?("q="+encodeURIComponent(q)):("genero="+encodeURIComponent(genero)+"&offset="+offset));
+    if(!q&&!genero){$("lista").innerHTML="";$("estado").textContent="Elige un género o busca algo.";return}
+    $("estado").textContent="Cargando...";
+    fetch(url).then(function(r){return r.json()}).then(function(d){
+      if(!append)$("lista").innerHTML="";
+      (d.songs||[]).forEach(function(s){$("lista").appendChild(fila(s))});
+      $("estado").textContent=(d.songs||[]).length+" canciones"+(q?(' para "'+q+'"'):(" de "+genero+" (desde "+offset+")"));
+      $("masBtn").style.display=(!q&&(d.songs||[]).length===100)?"":"none";
+    }).catch(function(){$("estado").textContent="Error cargando."});
+  }
+
+  var modo="canciones";
+  $("tabCanciones").classList.add("on");
+  $("tabCanciones").onclick=function(){modo="canciones";
+    $("tabCanciones").classList.add("on");$("tabVoces").classList.remove("on");
+    $("lista").innerHTML="";$("estado").textContent="Elige un género o busca algo.";};
+  $("tabVoces").onclick=function(){modo="voces";
+    $("tabVoces").classList.add("on");$("tabCanciones").classList.remove("on");
+    cargarVoces();};
+  function filaVoz(v){
+    var d=document.createElement("div");d.className="fila";
+    d.innerHTML='<div><div class="t"></div><div class="a"></div><div class="carp"></div></div>'+
+      '<div class="ctl"><button class="mini">▶</button><button class="mini rojo">🗑</button></div>';
+    d.querySelector(".t").textContent=(v.veredicto==="aprobados"?"✅ ":v.veredicto==="rechazados"?"⛔ ":"📥 ")+(v.cat||"");
+    d.querySelector(".a").textContent=(v.transcript||v.texto||"(sin transcripción)").slice(0,160);
+    d.querySelector(".carp").textContent=v.ts+" · tel "+(v.tel||"?")+(v.dur?(" · "+v.dur+"s"):"")+(v.motivo?(" · "+v.motivo):"");
+    var bots=d.querySelectorAll(".mini");
+    bots[0].onclick=function(){
+      if(!v.archivo){alert("Este aporte es solo texto.");return}
+      if(d.querySelector("audio")){d.querySelector("audio").remove();return}
+      var au=document.createElement("audio");au.controls=true;au.autoplay=true;
+      au.src="/api/curador/voces/oir?f="+encodeURIComponent(v.archivo);
+      d.querySelector(".ctl").appendChild(au);
+    };
+    bots[1].onclick=function(){
+      if(!v.archivo){d.remove();return}
+      if(!confirm("¿Borrar este audio definitivamente?"))return;
+      fetch("/api/curador/voces/borrar",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({archivo:v.archivo})}).then(function(r){return r.json()})
+        .then(function(x){if(x.ok)d.remove()});
+    };
+    return d;
+  }
+  function cargarVoces(){
+    $("estado").textContent="Cargando voces...";$("lista").innerHTML="";
+    fetch("/api/curador/voces").then(function(r){return r.json()}).then(function(d){
+      (d.voces||[]).forEach(function(v){$("lista").appendChild(filaVoz(v))});
+      $("estado").textContent=(d.voces||[]).length+" aportes del canal de WhatsApp (más reciente primero).";
+    }).catch(function(){$("estado").textContent="Error cargando voces."});
+  }
+  $("q").addEventListener("input",function(){
+    if(modo!=="canciones")return;
+    clearTimeout(buscando);buscando=setTimeout(function(){offset=0;cargar(false)},400);
+  });
+  $("masBtn").onclick=function(){offset+=100;cargar(true)};
+  $("rescan").onclick=function(){
+    fetch("/api/curador/rescan",{method:"POST"}).then(function(){$("estado").textContent="Re-escaneo lanzado: en ~1 min la radio ve tus cambios."});
+  };
+  function papelera(){
+    fetch("/api/curador/papelera").then(function(r){return r.json()})
+      .then(function(d){$("papCount").textContent=d.total||0}).catch(function(){});
+  }
+  $("vaciarBtn").onclick=function(){
+    if(!confirm("¿Borrar DEFINITIVAMENTE todo lo que hay en la papelera?"))return;
+    fetch("/api/curador/vaciar",{method:"POST"}).then(function(r){return r.json()})
+      .then(function(d){alert("Borrados: "+(d.borrados||0));papelera()});
+  };
+  papelera();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+{
+ "dominicana": {
+  "name": "Dominicana",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#CE1126",
+  "amber": "#E9C46A",
+  "teal": "#2456A6",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#E9C46A",
+   "#CE1126",
+   "#2456A6",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#E63950",
+   "#CE1126"
+  ],
+  "micGrad": [
+   "#E63950",
+   "#CE1126",
+   "#7E0B18"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#E9C46A"
+  ],
+  "fondo": "https://kulturaradio.com/skins/dominicana.webp",
+  "barras": [
+   "#FFFFFF",
+   "#2456A6",
+   "#CE1126"
+  ],
+  "cielo": true
+ },
+ "boricua": {
+  "name": "Boricua",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#ED1C24",
+  "amber": "#F2C94C",
+  "teal": "#1E63C8",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#F2C94C",
+   "#ED1C24",
+   "#1E63C8",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#F0474E",
+   "#ED1C24"
+  ],
+  "micGrad": [
+   "#F0474E",
+   "#ED1C24",
+   "#8F1014"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#F2C94C"
+  ],
+  "fondo": "https://kulturaradio.com/skins/boricua.webp",
+  "barras": [
+   "#ED1C24",
+   "#FFFFFF",
+   "#1E63C8"
+  ],
+  "cielo": true
+ },
+ "mexico": {
+  "name": "México",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#CE1126",
+  "amber": "#E9C46A",
+  "teal": "#0E7A45",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#E9C46A",
+   "#CE1126",
+   "#0E7A45",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#18A05D",
+   "#0E7A45"
+  ],
+  "micGrad": [
+   "#18A05D",
+   "#0E7A45",
+   "#07492A"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#E9C46A"
+  ],
+  "fondo": "https://kulturaradio.com/skins/mexico.webp",
+  "barras": [
+   "#18A05D",
+   "#FFFFFF",
+   "#CE1126"
+  ],
+  "cielo": true
+ },
+ "elsalvador": {
+  "name": "El Salvador",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#1E63C8",
+  "amber": "#E9C46A",
+  "teal": "#0F47AF",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#E9C46A",
+   "#1E63C8",
+   "#0F47AF",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#2B6BD6",
+   "#0F47AF"
+  ],
+  "micGrad": [
+   "#2B6BD6",
+   "#0F47AF",
+   "#082A68"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#E9C46A"
+  ],
+  "fondo": "https://kulturaradio.com/skins/elsalvador.webp",
+  "barras": [
+   "#1E63C8",
+   "#FFFFFF",
+   "#1E63C8"
+  ],
+  "cielo": true
+ },
+ "honduras": {
+  "name": "Honduras",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#0073CF",
+  "amber": "#E9C46A",
+  "teal": "#2E8FE0",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#E9C46A",
+   "#0073CF",
+   "#2E8FE0",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#2E8FE0",
+   "#0073CF"
+  ],
+  "micGrad": [
+   "#2E8FE0",
+   "#0073CF",
+   "#064A80"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#E9C46A"
+  ],
+  "fondo": "https://kulturaradio.com/skins/honduras.webp",
+  "barras": [
+   "#0073CF",
+   "#FFFFFF",
+   "#0073CF"
+  ],
+  "cielo": true
+ },
+ "colombia": {
+  "name": "Colombia",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#CE1126",
+  "amber": "#FCD116",
+  "teal": "#2456A6",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#FCD116",
+   "#CE1126",
+   "#2456A6",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#E63950",
+   "#CE1126"
+  ],
+  "micGrad": [
+   "#E63950",
+   "#CE1126",
+   "#7E0B18"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#FCD116"
+  ],
+  "fondo": "https://kulturaradio.com/skins/colombia.webp",
+  "barras": [
+   "#FCD116",
+   "#2456A6",
+   "#CE1126"
+  ],
+  "cielo": true
+ },
+ "venezuela": {
+  "name": "Venezuela",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#CF142B",
+  "amber": "#FCD116",
+  "teal": "#2456A6",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#FCD116",
+   "#CF142B",
+   "#2456A6",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#E6485C",
+   "#CF142B"
+  ],
+  "micGrad": [
+   "#E6485C",
+   "#CF142B",
+   "#7E0B18"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#FCD116"
+  ],
+  "fondo": "https://kulturaradio.com/skins/venezuela.webp",
+  "barras": [
+   "#FCD116",
+   "#2456A6",
+   "#CF142B"
+  ],
+  "cielo": true
+ },
+ "cuba": {
+  "name": "Cuba",
+  "bg": "#0A1628",
+  "surface": "#122036",
+  "surface2": "#1A2C4A",
+  "cream": "#F4F7FB",
+  "muted": "rgba(244,247,251,0.55)",
+  "faint": "rgba(244,247,251,0.10)",
+  "terra": "#CF142B",
+  "amber": "#E9C46A",
+  "teal": "#2A52BE",
+  "red": "#E11D2E",
+  "dark": "#FFFFFF",
+  "gradRadio": [
+   "#16294A",
+   "#0D1B33",
+   "#0A1628"
+  ],
+  "grad": [
+   "#122240",
+   "#0C1830",
+   "#0A1628"
+  ],
+  "vinyl": [
+   "#E9C46A",
+   "#CF142B",
+   "#2A52BE",
+   "#0A1628"
+  ],
+  "vinylLabel": "#132A52",
+  "playGrad": [
+   "#E6485C",
+   "#CF142B"
+  ],
+  "micGrad": [
+   "#E6485C",
+   "#CF142B",
+   "#7E0B18"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#E9C46A"
+  ],
+  "fondo": "https://kulturaradio.com/skins/cuba.webp",
+  "barras": [
+   "#CF142B",
+   "#FFFFFF",
+   "#2A52BE"
+  ],
+  "cielo": true
+ },
+ "tropical": {
+  "name": "Tropical",
+  "bg": "#0C1F12",
+  "surface": "#142A1A",
+  "surface2": "#1D3A24",
+  "cream": "#F2F7E8",
+  "muted": "rgba(242,247,232,0.55)",
+  "faint": "rgba(242,247,232,0.10)",
+  "terra": "#35874A",
+  "amber": "#F7A94B",
+  "teal": "#6FBF73",
+  "red": "#E11D2E",
+  "dark": "#102A16",
+  "gradRadio": [
+   "#2E6B3A",
+   "#16331D",
+   "#0C1F12"
+  ],
+  "grad": [
+   "#244F2D",
+   "#13281A",
+   "#0C1F12"
+  ],
+  "vinyl": [
+   "#F7A94B",
+   "#35874A",
+   "#174D28",
+   "#06160C"
+  ],
+  "vinylLabel": "#2E6B3A",
+  "playGrad": [
+   "#FBC46B",
+   "#F7A94B"
+  ],
+  "micGrad": [
+   "#4CAF7D",
+   "#35874A",
+   "#1C5A30"
+  ],
+  "sendGrad": [
+   "#FBC46B",
+   "#F7A94B"
+  ],
+  "fondo": "https://kulturaradio.com/skins/tropical.webp"
+ },
+ "navidad": {
+  "name": "Navidad",
+  "bg": "#0E1613",
+  "surface": "#17241D",
+  "surface2": "#203027",
+  "cream": "#F6EFE3",
+  "muted": "rgba(246,239,227,0.55)",
+  "faint": "rgba(246,239,227,0.10)",
+  "terra": "#C0392B",
+  "amber": "#E9C46A",
+  "teal": "#3A7D5C",
+  "red": "#E11D2E",
+  "dark": "#1C1206",
+  "gradRadio": [
+   "#5E1F17",
+   "#2A2018",
+   "#0E1613"
+  ],
+  "grad": [
+   "#431712",
+   "#201C16",
+   "#0E1613"
+  ],
+  "vinyl": [
+   "#E9C46A",
+   "#C0392B",
+   "#5E1F17",
+   "#1C0D0A"
+  ],
+  "vinylLabel": "#A83226",
+  "playGrad": [
+   "#F2D48C",
+   "#E9C46A"
+  ],
+  "micGrad": [
+   "#D65A4A",
+   "#C0392B",
+   "#7E241A"
+  ],
+  "sendGrad": [
+   "#F2D48C",
+   "#E9C46A"
+  ],
+  "fondo": "https://kulturaradio.com/skins/navidad.webp"
+ }
+}

@@ -1,0 +1,9 @@
+[Unit]
+Description=Kultura Radio - El Minuto Kultura (noticiero ampliado)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/subwave/minuto_kultura.py
+StandardOutput=append:/opt/subwave/state/minuto/minuto.log
+StandardError=append:/opt/subwave/state/minuto/minuto.log

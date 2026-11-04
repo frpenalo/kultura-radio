@@ -215,17 +215,19 @@ end
 # one song behind until the next crossfade.
 music_meta = music
 
-music = cross(
-  duration=crossfade_duration(),
-  dj_transition,
-  music
-)
+# ---------------------------------------------------------------------------
+# JINGLES — rotacion 1 cada N canciones (settings jingleRatio). Tiene que ir
+# ANTES de cross(): el crossfade funde las pistas y su salida pierde las
+# marcas, asi que un rotate aguas abajo toca el jingle del arranque y nunca
+# vuelve a avanzar (bug de junio, reconfirmado 29-oct con ratio 5). Va DESPUES
+# de music_meta para que el now-playing no vea los jingles como canciones.
+# El jingle entra y sale por el crossfade normal, como una cancion mas.
+# ---------------------------------------------------------------------------
+# Colas de voz (declaradas aqui porque el peso dinamico de los jingles las
+# consulta; sus capas smooth_add siguen mas abajo).
+voice_queue = request.queue(id="voice_queue")
+intro_queue = request.queue(id="intro_queue")
 
-# ---------------------------------------------------------------------------
-# JINGLES — definidos aqui; el rotate que los inserta va MAS ABAJO (despues de
-# toda la capa de voz/sfx) para que el DJ NO hable encima del jingle.
-# Normalizados al nivel de la musica.
-# ---------------------------------------------------------------------------
 jingles = playlist(
   id="jingles",
   mode="randomize",
@@ -233,6 +235,16 @@ jingles = playlist(
   "/var/sub-wave/jingles.m3u"
 )
 jingles = normalize(target=-15., lufs=true, up=2., down=2., jingles)
+# Peso dinamico: si hay VOZ al aire o en cola (noticias, capsulas, links),
+# el jingle no entra en ese borde (solapar jingle cantado con noticia suena
+# a choque); su turno lo toma una cancion y la rueda sigue.
+music = rotate(weights=[{if source.is_ready(voice_queue) or source.is_ready(intro_queue) then 0 else 1 end}, {jingle_ratio()}], [jingles, music])
+
+music = cross(
+  duration=crossfade_duration(),
+  dj_transition,
+  music
+)
 
 # ---------------------------------------------------------------------------
 # DJ VOICE — TTS intros that duck the music
@@ -245,8 +257,7 @@ jingles = normalize(target=-15., lufs=true, up=2., down=2., jingles)
 #                 request back-announce). Heavy duck so music drops out.
 #   intro_queue — talk-over voice (auto DJ links between tracks). Light duck
 #                 so the song you just queued stays audibly underneath.
-voice_queue = request.queue(id="voice_queue")
-intro_queue = request.queue(id="intro_queue")
+# (voice_queue/intro_queue se declaran arriba, antes de los jingles)
 
 # Sound-effects channel — short pre-rendered stingers the DJ agent plays
 # UNDER its voice. The controller writes a clip path into /var/sub-wave/sfx.txt
@@ -444,10 +455,9 @@ radio = smooth_add(
   special=sfx_bed
 )
 
-# JINGLES — el rotate va AQUI, despues de toda la voz/sfx, para que el DJ NO
-# hable encima del jingle (el jingle es su propia "pista" en la rotacion).
-# 1 jingle cada N canciones (settings jingleRatio).
-radio = rotate(weights=[1, jingle_ratio()], [jingles, radio])
+# JINGLES — la rotacion vive ARRIBA (pre-cross): ni cross() ni las capas
+# smooth_add propagan marcas de pista, asi que cualquier rotate por aqui se
+# queda trancado tras el primer jingle (bug de junio, cerrado 29-oct).
 
 # ---------------------------------------------------------------------------
 # SAFETY — blank detection, fallback to silence-killer playlist
@@ -513,6 +523,7 @@ radio = switch(id="madrugada", track_sensitive=false,
 # desconectarse, la radio-IA retoma sola. Pasa por el limitador final igual.
 # ---------------------------------------------------------------------------
 # --- DJ EN VIVO: refleja al DJ humano en el now-playing (badge + titulo) ---
+# last_np guarda el ultimo now-playing de la IA para restaurarlo al desconectar.
 # (la ref last_np se define antes del switch de madrugada)
 
 def dj_name() =
@@ -547,7 +558,20 @@ live_dj = input.harbor(
   max=10.0,
   port=8090,
   password=environment.get(default="change-me", "LIVE_DJ_PASSWORD"),
-  on_connect=fun(_) -> begin log("LIVE DJ conectado — al aire") write_live_np("En vivo") end,
+  on_connect=fun(_) -> begin
+    log("LIVE DJ conectado — al aire")
+    write_live_np("En vivo")
+    # Push a la app nativa: el servicio del host responde al instante y
+    # envia en background; si no esta, se ignora sin tumbar el takeover.
+    try
+      ignore(http.post("http://172.18.0.1:8099/live",
+        headers=[("Content-Type", "application/json")],
+        data=json.stringify(compact=true, {dj = dj_name()}),
+        timeout=5.0))
+    catch _ do
+      log("push /live no disponible (ignorado)")
+    end
+  end,
   on_disconnect=fun() -> begin
     log("LIVE DJ desconectado — vuelve la IA")
     if last_np() != "" then
@@ -697,6 +721,27 @@ def make_stream_outputs() =
     url="http://localhost:7700",
     radio
   )
+  # LIVE365 (oct 2026): la misma senal masterizada sale hacia el ingest de
+  # Live365 (Icecast2). fallible=true: si su lado se cae, el stream propio
+  # sigue intacto y Liquidsoap reintenta la conexion solo.
+  live365_out = output.icecast(
+    %mp3(bitrate=128, samplerate=44100, stereo=true),
+    id="live365",
+    fallible=true,
+    host="ingest.live365.com",
+    port=8000,
+    user="source",
+    password=environment.get("LIVE365_PASSWORD"),
+    mount="/a21141_live",
+    name="Kultura Radio",
+    description="La que nos une - Raleigh NC",
+    genre="Latin",
+    url="https://kulturaradio.com",
+    on_connect=fun() -> log("LIVE365 conectado"),
+    on_disconnect=fun() -> log("LIVE365 desconectado - reintentando"),
+    radio
+  )
+  ignore(live365_out)
   # Opus mandates 48 kHz internally — Liquidsoap resamples from the 44.1 kHz
   # source bus. application="audio" is the right tuning for music (vs "voip"
   # or "lowdelay"). 96 kbps is the music-transparent sweet spot. Gated on

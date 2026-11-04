@@ -52,8 +52,8 @@ def sub_qs(extra):
     return urllib.parse.urlencode(base)
 
 def get_songs(genre, count=500):
-    # Subsonic entrega maximo 500 por llamada; con pools mayores hay que
-    # PAGINAR o la cola de las canciones jamas rota.
+    # Subsonic entrega maximo 500 por llamada; con pools ya mayores (Merengue
+    # 780+) hay que PAGINAR o la cola de las canciones jamas rota.
     songs, offset = [], 0
     while True:
         url = NAV_QUERY + "/rest/getSongsByGenre?" + sub_qs({"genre": genre, "count": count, "offset": offset})

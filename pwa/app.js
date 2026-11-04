@@ -12,6 +12,69 @@
   var miBtn = $("miBtn"), miIcon = $("miIcon"), mini = $("mini");
 
   var starting = false, wantPlay = false;
+  // Redes sociales desde redes.json (cambiar una red = editar el servidor) y
+  // boton de compartir la app (Web Share con fallback a copiar el link).
+  // Canal "Tu voz en Kultura" (WhatsApp): se enciende desde participa.json
+  // cuando el numero este activo; cero rebuilds.
+  fetch("/participa.json").then(function (r) { return r.json(); }).then(function (c) {
+    if (!c || !c.activo || !c.numero) return;
+    var b = $("vozBtn");
+    b.style.display = ""; $("vozLabel").style.display = "";
+    var sub = $("vozSub"); sub.style.display = ""; sub.textContent = c.sub || "";
+    if (c.boton) b.innerHTML = '<i class="ti ti-microphone"></i>' + c.boton;
+    b.addEventListener("click", function () {
+      location.href = "https://wa.me/" + c.numero.replace(/\D/g, "") +
+        "?text=" + encodeURIComponent(c.mensaje || "Hola Kultura");
+    });
+  }).catch(function () {});
+    // "Apoya a Kultura" (Stripe, monto libre): se enciende desde apoya.json.
+  fetch("/apoya.json").then(function (r) { return r.json(); }).then(function (c) {
+    if (!c || !c.activo || !c.url) return;
+    var b = $("apoyaBtn");
+    b.style.display = ""; $("apoyaLabel").style.display = "";
+    var sub = $("apoyaSub"); sub.style.display = ""; sub.textContent = c.sub || "";
+    if (c.boton) b.innerHTML = '<i class="ti ti-heart"></i>' + c.boton;
+    b.addEventListener("click", function () { window.open(c.url, "_blank", "noopener"); });
+  }).catch(function () {});
+  fetch("/redes.json").then(function (r) { return r.json(); }).then(function (d) {
+    var redes = (d && d.redes) || [];
+    if (!redes.length) return;
+    var row = $("socialRow");
+    redes.forEach(function (r) {
+      var a = document.createElement("a");
+      a.href = r.url; a.target = "_blank"; a.rel = "noopener";
+      a.innerHTML = '<i class="ti ti-brand-' + r.id + '"></i>' + r.nombre;
+      row.appendChild(a);
+    });
+    $("socialLabel").style.display = "";
+  }).catch(function () {});
+  $("shareBtn").addEventListener("click", function () {
+    var texto = "🎶 ¡Te recomiendo Kultura Radio!\nLa música latina que nos conecta con nuestras raíces.\n🎧 Salsa, bachata, merengue y mucho más.\nKULTURA RADIO. La que nos une. ❤️\n📲 Escúchala gratis:";
+    var url = "https://kulturaradio.com/app";
+    if (navigator.share) {
+      navigator.share({ title: "Kultura Radio", text: texto, url: url }).catch(function () {});
+    } else {
+      navigator.clipboard.writeText(texto + " " + url).then(function () {
+        $("shareAck").textContent = "Link copiado: pégalo donde quieras.";
+      }).catch(function () {});
+    }
+  });
+
+  // Geo: la licencia (Live365) cubre US/CA/UK/MX; fuera de ahi no se reproduce.
+  var geoOk = true;
+  fetch("/api/geo").then(function (r) { return r.json(); }).then(function (g) {
+    if (g && g.permitido === false) geoOk = false;
+  }).catch(function () {});
+  // Fuentes de stream desde el servidor: primario (Live365 cuando se configure,
+  // para que los oyentes cuenten en sus reportes) y respaldo (nuestro VPS). Si
+  // una falla, el proximo intento usa la otra.
+  var srcs = [STREAM], srcIdx = 0;
+  fetch("/api/stream-config").then(function (r) { return r.json(); }).then(function (c) {
+    var l = [];
+    if (c && c.primario) l.push(c.primario);
+    if (c && c.respaldo && c.respaldo !== c.primario) l.push(c.respaldo);
+    if (l.length) srcs = l;
+  }).catch(function () {});
   function renderPlay() {
     playIcon.innerHTML = playing ? PAUSE : PLAY;
     miIcon.innerHTML = playing ? PAUSE : PLAY;
@@ -19,16 +82,20 @@
     disc.classList.toggle("spin", playing);
   }
   function start() {
+    if (!geoOk) {
+      alert("Kultura Radio solo está disponible en Estados Unidos, Canadá, Reino Unido y México por licencias de música.");
+      return;
+    }
     // Conexión fresca cada vez para enganchar el borde EN VIVO del stream.
     wantPlay = true;
     starting = true;
     try { audio.pause(); } catch (e) {}
-    audio.src = STREAM + "?t=" + Date.now();
+    audio.src = srcs[srcIdx % srcs.length] + "?t=" + Date.now();
     try { audio.load(); } catch (e) {}
     var p = audio.play();
     if (p && p.then) {
       p.then(function () { starting = false; playing = true; renderPlay(); })
-       .catch(function () { starting = false; playing = false; renderPlay(); });
+       .catch(function () { starting = false; playing = false; srcIdx++; renderPlay(); });
     } else { starting = false; }
   }
   function stop() {
@@ -46,7 +113,7 @@
   // Solo refleja pausa real (cuando aún hay src); stop() ya limpia el estado.
   audio.addEventListener("pause", function () { if (audio.currentSrc) { playing = false; renderPlay(); } });
   audio.addEventListener("ended", function () { playing = false; renderPlay(); });
-  audio.addEventListener("error", function () { starting = false; playing = false; renderPlay(); });
+  audio.addEventListener("error", function () { starting = false; playing = false; if (wantPlay) srcIdx++; renderPlay(); });
 
   // Resiliencia: si el oyente QUERÍA escuchar (wantPlay) y el audio se cortó
   // (carro apagado, Bluetooth, túnel, señal), reintenta reconectar solo cuando
@@ -131,6 +198,31 @@
   // Al arrancar, refresca de una para que la lock screen muestre lo correcto.
   audio.addEventListener("playing", poll);
 
+  function fmtHora(h) {
+    var x = h % 12 || 12;
+    return x + (h < 12 ? ":00 am" : ":00 pm");
+  }
+  function loadParrilla() {
+    fetch("/api/programa", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.ahora) {
+          $("showName").textContent = d.ahora.nombre;
+          $("showDesc").textContent = d.ahora.desc;
+        }
+        var html = "", ahoraId = d.ahora && d.ahora.id;
+        (d.hoy_lista || []).forEach(function (x) {
+          var on = x.id === ahoraId;
+          html += '<div class="row"><div class="info"><div class="t"' +
+            (on ? ' style="color:var(--amber)"' : '') + '>' + x.nombre +
+            (on ? ' \u00b7 en el aire' : '') + '</div><div class="a">' +
+            fmtHora(x.desde) + ' \u2013 ' + fmtHora(x.hasta) + '</div></div></div>';
+        });
+        $("parrillaHoy").innerHTML = html;
+      })
+      .catch(function () {});
+  }
+
   function loadProgram() {
     fetch("/api/state", { cache: "no-store" })
       .then(function (r) { return r.json(); })
@@ -155,7 +247,7 @@
     tabs.forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-go") === name); });
     mini.classList.toggle("show", name !== "radio");
     window.scrollTo(0, 0);
-    if (name === "programa") loadProgram();
+    if (name === "programa") { loadProgram(); loadParrilla(); }
     if (name === "pedir") refreshReqState(true);
   }
   tabs.forEach(function (b) { b.addEventListener("click", function () { go(b.getAttribute("data-go")); }); });

@@ -7,16 +7,119 @@
 
 kulturaradio.com, www.kulturaradio.com {
 	# Stream en vivo (Icecast, sin buffer)
+	# Oyentes al stream LICENCIADO de Live365 (la senal se produce aqui, se
+	# envia a su ingest, y ellos la reparten contando las horas para las
+	# licencias). App y PWA siguen el 302 sin cambios.
+	# TEMPORAL: Live365 caido ("station not found"); oyentes de vuelta al
+	# stream local hasta que su lado reviva. Revertir: restaurar el redir.
+	# redir /stream.mp3 https://streaming.live365.com/a21141 302
+
 	@streams path /stream.mp3 /stream.opus
 	handle @streams {
 		reverse_proxy broadcast:7702 {
 			flush_interval -1
+			# Un reload de Caddy cierra por defecto las conexiones largas: sin
+			# esto, cada cambio de config cortaba a los oyentes del stream.
+			stream_close_delay 6h
 			transport http {
 				read_buffer 16KB
 				response_header_timeout 30s
 				dial_timeout 5s
 			}
 		}
+	}
+
+	# Registro de dispositivos para push (app nativa). Solo /register es
+	# publico; /live y /send del servicio quedan internos (172.18.0.1).
+	@pushreg path /api/push/register
+	handle @pushreg {
+		rewrite * /register
+		reverse_proxy 172.18.0.1:8099
+	}
+
+	# Dedicatorias de voz (app nativa): moderacion automatica en el host.
+	@dedi path /api/dedi
+	handle @dedi {
+		rewrite * /dedi
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	# Autocompletado del catalogo (app): busqueda de canciones sin LLM.
+	@songs path /api/songs
+	handle @songs {
+		rewrite * /songs?{query}
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	# Ahora-suena sincronizado al reloj de Live365 (lo que el oyente OYE);
+	# el crudo de produccion queda en /api/now-playing-raw.
+	@anunciante path /api/anunciante
+	handle @anunciante {
+		rewrite * /anunciante
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@streamcfg path /api/stream-config
+	handle @streamcfg {
+		rewrite * /stream-config
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@curadorzona path /curador /curador.html /api/curador/*
+	basic_auth @curadorzona {
+		comando {env.CURADOR_HASH}
+	}
+	@curapi path /api/curador/*
+	handle @curapi {
+		uri strip_prefix /api
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@vozll path /api/voz-llamada /api/voz-llamada-fin /api/voz-llamada-grabacion
+	handle @vozll {
+		uri strip_prefix /api
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@telem path /api/telemetria
+	handle @telem {
+		uri strip_prefix /api
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@vozwa path /api/voz-whatsapp
+	handle @vozwa {
+		rewrite * /voz-whatsapp
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@geo path /api/geo
+	handle @geo {
+		rewrite * /geo
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@salud path /api/health
+	handle @salud {
+		rewrite * /salud
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@programa path /api/programa
+	handle @programa {
+		rewrite * /programa
+		reverse_proxy 172.18.0.1:8098
+	}
+
+	@npsync path /api/now-playing
+	handle @npsync {
+		rewrite * /nowplaying
+		reverse_proxy 172.18.0.1:8098
+	}
+	@npraw path /api/now-playing-raw
+	handle @npraw {
+		rewrite * /now-playing
+		reverse_proxy controller:7701
 	}
 
 	# API del controller (prefijo /api eliminado)
@@ -37,6 +140,12 @@ kulturaradio.com, www.kulturaradio.com {
 		# el servidor — los oyentes quedaban corriendo código antiguo tras cada
 		# deploy. no-cache = siempre revalidar (ETag → 304, barato).
 		header Cache-Control "no-cache, must-revalidate"
+		# Pagina de instalacion de la app: kulturaradio.com/app
+		rewrite /app /app.html
+		# Landing de anunciantes: kulturaradio.com/anunciate
+		rewrite /anunciate /anunciate.html
+	rewrite /cabina /cabina.html
+	rewrite /curador /curador.html
 		root * /srv/pwa
 		try_files {path} /index.html
 		file_server

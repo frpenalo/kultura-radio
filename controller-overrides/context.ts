@@ -175,8 +175,8 @@ const DAYPART_ENERGY: Record<string, { speed: number; register: string }> = {
   afternoon:       { speed: 1.0,  register: 'even' },       // neutral baseline
   'drive-time':    { speed: 1.06, register: 'up' },        // drive-home energy
   evening:         { speed: 0.97, register: 'warm' },      // wind down
-  'late-evening':  { speed: 0.94, register: 'intimate' },  // late hours
-  'after-hours':   { speed: 0.92, register: 'intimate' },  // graveyard
+  'late-evening':  { speed: 1.0, register: 'intimate' },   // late hours (Kultura: tropical, sin arrastre)
+  'after-hours':   { speed: 0.98, register: 'intimate' },  // graveyard (Kultura: piso alto)
 };
 
 export function energyForDaypart(date = new Date()) {
@@ -185,7 +185,7 @@ export function energyForDaypart(date = new Date()) {
   const base = DAYPART_ENERGY[period] || { speed: 1.0, register: 'even' };
   // The small hours pull the pace down regardless of which daypart label the
   // hour technically falls under (e.g. the 00:00–01:00 tail of 'late-evening').
-  if (isLateNight) return { speed: Math.min(base.speed, 0.92), register: 'intimate' };
+  if (isLateNight) return { speed: Math.min(base.speed, 0.98), register: 'intimate' };
   // Commute windows get a touch more push than their daypart baseline.
   if (isCommute) return { speed: Math.max(base.speed, 1.05), register: 'up' };
   return base;

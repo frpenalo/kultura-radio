@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Cabina DJ · Kultura Radio</title>
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#071725; --navy2:#0c2234; --tinta:#f4f7fb; --suave:#aebdca;
+    --oro:#e8b04b; --linea:rgba(244,247,251,.12); --verde:#3ecf8e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy);color:var(--tinta);font-family:Outfit,system-ui,sans-serif;line-height:1.6}
+  .wrap{max-width:720px;margin:0 auto;padding:28px 18px 80px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  header img{height:30px}
+  header span{font-size:13px;letter-spacing:.18em;color:var(--suave);text-transform:uppercase}
+  h1{font-family:Fraunces,serif;font-size:clamp(28px,6vw,40px);line-height:1.15;margin-bottom:10px}
+  h1 em{color:var(--oro);font-style:normal}
+  .sub{color:var(--suave);margin-bottom:30px;max-width:54ch}
+  h2{font-family:Fraunces,serif;font-size:21px;margin:34px 0 12px}
+  .card{background:var(--navy2);border:1px solid var(--linea);border-radius:14px;padding:20px}
+  table{width:100%;border-collapse:collapse;font-size:16px}
+  td{padding:9px 6px;border-bottom:1px solid var(--linea);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--suave);width:38%;white-space:nowrap}
+  td:last-child{font-family:ui-monospace,Consolas,monospace;font-weight:600}
+  .copiar{margin-top:14px;width:100%;padding:12px;border:0;border-radius:10px;background:var(--oro);
+    color:#071725;font:600 15px Outfit,sans-serif;cursor:pointer}
+  .copiar:active{transform:scale(.99)}
+  ol{padding-left:22px;display:grid;gap:10px;color:var(--tinta)}
+  ol b{color:var(--oro);font-weight:600}
+  a{color:var(--oro)}
+  .nota{border-left:3px solid var(--oro);padding:10px 14px;background:rgba(232,176,75,.07);
+    border-radius:0 10px 10px 0;margin-top:14px;color:var(--suave);font-size:15px}
+  .regla{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--linea)}
+  .regla:last-child{border-bottom:none}
+  .regla .p{color:var(--verde);font-weight:700}
+  footer{margin-top:44px;color:var(--suave);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="/icons/wordmark-dark.png" alt="Kultura Radio">
+    <span>· Cabina DJ</span>
+  </header>
+
+  <h1>Conéctate y <em>toma el aire</em></h1>
+  <p class="sub">Esta página tiene todo lo que necesitas para transmitir EN VIVO en Kultura Radio
+  desde tu casa. Al conectarte, tu música sale al aire de una vez (web, app y Live365);
+  al desconectarte, la programación automática retoma sola. No hay nada más que coordinar
+  con el estudio.</p>
+
+  <h2>Datos de conexión</h2>
+  <div class="card">
+    <table id="datos">
+      <tr><td>Servidor</td><td>kulturaradio.com</td></tr>
+      <tr><td>Puerto</td><td>8090</td></tr>
+      <tr><td>Mountpoint</td><td>/live</td></tr>
+      <tr><td>Usuario</td><td>source</td></tr>
+      <tr><td>Contraseña</td><td>CONTRASENA_DEL_DJ</td></tr>
+      <tr><td>Formato</td><td>MP3 · 128 a 192 kbps</td></tr>
+    </table>
+    <button class="copiar" id="btnCopiar">Copiar todos los datos</button>
+  </div>
+
+  <h2>Cómo transmitir con BUTT (gratis, 5 minutos)</h2>
+  <div class="card">
+    <ol>
+      <li>Descarga <b>BUTT</b> (Broadcast Using This Tool) en
+        <a href="https://danielnoethen.de/butt/" target="_blank" rel="noopener">danielnoethen.de/butt</a>
+        — hay versión para Windows y Mac.</li>
+      <li>Ábrelo y entra a <b>Settings → Main → Server Settings → Add</b>.</li>
+      <li>Escribe: Type <b>Icecast</b>, Address <b>kulturaradio.com</b>, Port <b>8090</b>,
+        Password <b>CONTRASENA_DEL_DJ</b>, IcecastMountpoint <b>/live</b>, Icecast user <b>source</b>. Guarda con <b>Add</b>.</li>
+      <li>En <b>Settings → Audio</b> elige tu fuente de sonido (tu consola o la salida de tu
+        programa de DJ) y formato <b>MP3, 128 o 192 kbps</b>.</li>
+      <li>Dale al botón de <b>play</b> de BUTT. Cuando diga "connected", estás AL AIRE.</li>
+      <li>Para despedirte, para la transmisión: la programación automática entra sola en segundos.</li>
+    </ol>
+    <p class="nota">¿Usas VirtualDJ, Serato, Mixxx o rekordbox? Todos pueden transmitir directo a
+    Icecast con estos mismos datos (busca "broadcast" o "stream" en sus ajustes). BUTT es la vía
+    fácil si tu programa no lo trae.</p>
+  </div>
+
+  <h2>Reglas de cabina</h2>
+  <div class="card">
+    <div class="regla"><span class="p">✓</span><span>Coordina tu horario con la dirección antes de conectarte: al entrar tumbas la programación que esté sonando.</span></div>
+    <div class="regla"><span class="p">✓</span><span>Música de copias legítimas (tu colección, pool de DJ). Nada descargado de sitios piratas.</span></div>
+    <div class="regla"><span class="p">✓</span><span>Radio familiar: sin letras explícitas ni groserías al micrófono.</span></div>
+    <div class="regla"><span class="p">✓</span><span>Prueba tu conexión unos minutos ANTES de tu hora, no durante el show de otro.</span></div>
+    <div class="regla"><span class="p">✓</span><span>Si se te cae el internet, no entres en pánico: la automática cubre el aire hasta que vuelvas.</span></div>
+  </div>
+
+  <footer>Kultura Radio · la que nos une · Raleigh, NC</footer>
+</div>
+<script>
+  document.getElementById("btnCopiar").addEventListener("click", function () {
+    var texto = "Kultura Radio - datos de conexion DJ\n" +
+      "Servidor: kulturaradio.com\nPuerto: 8090\nMountpoint: /live\n" +
+      "Usuario: source\nContrasena: CONTRASENA_DEL_DJ\nFormato: MP3 128-192 kbps";
+    navigator.clipboard.writeText(texto).then(function () {
+      var b = document.getElementById("btnCopiar");
+      b.textContent = "Copiado ✓";
+      setTimeout(function () { b.textContent = "Copiar todos los datos"; }, 2000);
+    });
+  });
+</script>
+</body>
+</html>

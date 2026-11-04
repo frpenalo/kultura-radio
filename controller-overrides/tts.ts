@@ -112,7 +112,7 @@ async function speakWith(engine: string, text: string, opts: any, personaTts: an
   if (engine === 'cloud') {
     // Persona picks provider + voice; the shared tts.cloud holds key + model.
     const cloudOverride = (personaTts && personaTts.engine === 'cloud')
-      ? { provider: personaTts.cloudProvider, voice: personaTts.voice }
+      ? { provider: personaTts.cloudProvider, voice: personaTts.voice, instructions: personaTts.instructions }
       : null;
     return cloud.speak(text, { ...opts, cloudOverride });
   }

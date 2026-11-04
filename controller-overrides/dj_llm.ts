@@ -347,6 +347,8 @@ export async function generateIntro({ track, context, requestedBy = null, reques
   }
   ctxLines.push(`Coming up: "${track.title}" by ${track.artist}${track.album ? ` from ${track.album}` : ''}${track.year ? ` (${track.year})` : ''}`);
   if (track.genre) ctxLines.push(`Genre: ${track.genre} — if you mention the style, use THIS exact genre; never invent a different one.`);
+  const hoyET = new Date().toLocaleDateString('es-US', { timeZone: 'America/New_York', year: 'numeric', month: 'long', day: 'numeric' });
+  ctxLines.push(`Today's real date: ${hoyET}. NEVER state a year, an age, an anniversary or "cumple X anos" about an artist or song — you do not know those facts and the current year is NOT what you assume.`);
 
   // Talk-within-the-intro (A.3 phase 1): when the track's intro runway is
   // known, budget the line to land before the vocals. Advisory + additive —

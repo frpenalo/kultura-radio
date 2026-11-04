@@ -22,7 +22,6 @@ AUTH = "Basic " + base64.b64encode(ADMIN.encode()).decode()
 BASE = "https://kulturaradio.com/api"
 FEEDS = [
     ("Caribe/RD", "https://www.diariolibre.com/rss/portada.xml"),
-    ("Comunidad EEUU", "https://laopinion.com/feed/"),
     ("Local NC/Triangle", "https://enlacelatinonc.org/feed/"),  # solo contenido; NO nombrar la fuente hasta tener autorizacion
 ]
 

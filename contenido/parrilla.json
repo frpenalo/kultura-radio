@@ -1,0 +1,238 @@
+{
+  "tz": "America/New_York",
+  "shows": [
+    {
+      "id": "amanecer",
+      "nombre": "Amanecer Tropical",
+      "desc": "Merengue y salsa para arrancar el día con sabor.",
+      "dias": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "desde": 6,
+      "hasta": 10,
+      "cycle": [
+        "Merengue",
+        "Salsa",
+        "Merengue",
+        "Salsa",
+        "Bachata"
+      ],
+      "prio": 1
+    },
+    {
+      "id": "mediodia",
+      "nombre": "Mediodía Kultura",
+      "desc": "La mezcla tropical que acompaña tu día.",
+      "dias": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "desde": 10,
+      "hasta": 15,
+      "cycle": [
+        "Salsa",
+        "Merengue",
+        "Bachata"
+      ],
+      "prio": 1
+    },
+    {
+      "id": "tarde",
+      "nombre": "Tardes Tropicales",
+      "desc": "Bachata, merengue y salsa rumbo a la noche.",
+      "dias": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "desde": 15,
+      "hasta": 19,
+      "cycle": [
+        "Bachata",
+        "Merengue",
+        "Salsa",
+        "Merengue",
+        "Bachata"
+      ],
+      "prio": 1
+    },
+    {
+      "id": "hora-urbana",
+      "nombre": "La Hora Urbana",
+      "desc": "Reggaetón y dembow: la única hora urbana del día.",
+      "dias": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "desde": 19,
+      "hasta": 20,
+      "cycle": [
+        "Reggaeton",
+        "Dembow"
+      ],
+      "prio": 2
+    },
+    {
+      "id": "noche-tropical",
+      "nombre": "La Noche Tropical",
+      "desc": "Salsa, merengue y bachata de noche.",
+      "dias": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "desde": 20,
+      "hasta": 23,
+      "cycle": [
+        "Salsa",
+        "Merengue",
+        "Bachata",
+        "Salsa"
+      ],
+      "prio": 1
+    },
+    {
+      "id": "lunes-merengue",
+      "nombre": "Lunes de Merengue",
+      "desc": "Puro merengue para arrancar la semana.",
+      "dias": [
+        1
+      ],
+      "desde": 20,
+      "hasta": 22,
+      "cycle": [
+        "Merengue"
+      ],
+      "prio": 2
+    },
+    {
+      "id": "martes-salsa",
+      "nombre": "Martes de Salsa",
+      "desc": "Dos horas de salsa pura.",
+      "dias": [
+        2
+      ],
+      "desde": 20,
+      "hasta": 22,
+      "cycle": [
+        "Salsa"
+      ],
+      "prio": 2
+    },
+    {
+      "id": "miercoles-bachata",
+      "nombre": "Miércoles de Bachata",
+      "desc": "Bachata de ayer y de hoy.",
+      "dias": [
+        3
+      ],
+      "desde": 20,
+      "hasta": 22,
+      "cycle": [
+        "Bachata"
+      ],
+      "prio": 2
+    },
+    {
+      "id": "jueves-clasicos",
+      "nombre": "Jueves de Clásicos",
+      "desc": "Boleros y clásicos que nos criaron.",
+      "dias": [
+        4
+      ],
+      "desde": 20,
+      "hasta": 22,
+      "cycle": [
+        "Bolero",
+        "Salsa",
+        "Bolero",
+        "Merengue"
+      ],
+      "prio": 2
+    },
+    {
+      "id": "fiesta-finde",
+      "nombre": "La Fiesta del Fin de Semana",
+      "desc": "Viernes y sábado a todo volumen.",
+      "dias": [
+        5,
+        6
+      ],
+      "desde": 20,
+      "hasta": 23,
+      "cycle": [
+        "Merengue",
+        "Salsa",
+        "Merengue",
+        "Bachata"
+      ],
+      "prio": 2
+    },
+    {
+      "id": "domingo-recuerdos",
+      "nombre": "Domingo de Recuerdos",
+      "desc": "Boleros y baladas para la familia.",
+      "dias": [
+        0
+      ],
+      "desde": 10,
+      "hasta": 12,
+      "cycle": [
+        "Bolero",
+        "Balada",
+        "Bolero",
+        "Salsa"
+      ],
+      "prio": 2
+    },
+    {
+      "id": "noche-romantica",
+      "nombre": "Noche Romántica",
+      "desc": "Baladas y boleros hasta el amanecer.",
+      "dias": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "desde": 23,
+      "hasta": 6,
+      "cycle": [
+        "Balada",
+        "Bolero",
+        "Bachata",
+        "Balada",
+        "Bolero",
+        "Salsa"
+      ],
+      "prio": 1
+    }
+  ]
+}

@@ -28,9 +28,16 @@ services:
     volumes:
       - ./liquidsoap/radio.liq:/etc/liquidsoap/radio.liq:ro
   controller:
+    environment:
+      - CLOUD_TTS_SPEED=1.18
     volumes:
       - ./controller/context.ts:/app/src/context.ts:ro
       - ./controller/tts.ts:/app/src/audio/tts.ts:ro
+      - ./controller/speech.ts:/app/src/llm/speech.ts:ro
       - ./controller/dj.ts:/app/src/routes/dj.ts:ro
       - ./controller/request.ts:/app/src/routes/request.ts:ro
       - ./controller/dj_llm.ts:/app/src/llm/dj.ts:ro
+      - ./controller/picker.ts:/app/src/music/picker.ts:ro
+      - ./controller/recency.ts:/app/src/music/recency.ts:ro
+      - ./controller/config.ts:/app/src/config.ts:ro
+      - ./state/parrilla:/app/parrilla:ro

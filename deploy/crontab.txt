@@ -1,0 +1,9 @@
+*/15 * * * * python3 /opt/subwave/kultura_rotation.py >> /opt/subwave/state/rotation.log 2>&1
+50 * * * * python3 /opt/subwave/kultura_capsule_news.py >> /opt/subwave/state/capsule_news.log 2>&1
+0 11,21 * * * python3 /opt/subwave/kultura_capsule_evergreen.py frase >> /opt/subwave/state/capsule_evergreen.log 2>&1
+30 14,18,22 * * * python3 /opt/subwave/kultura_capsule_evergreen.py cultural >> /opt/subwave/state/capsule_evergreen.log 2>&1
+20 11-23 * * * python3 /opt/subwave/kultura_capsule_traffic.py >> /opt/subwave/state/capsule_traffic.log 2>&1
+0 13,16,23 * * * python3 /opt/subwave/kultura_capsule_sports.py >> /opt/subwave/state/capsule_sports.log 2>&1
+0 14,20 * * * python3 /opt/subwave/kultura_capsule_holiday.py >> /opt/subwave/state/capsule_holiday.log 2>&1
+0 15,21 * * * python3 /opt/subwave/kultura_capsule_artist.py >> /opt/subwave/state/capsule_artist.log 2>&1
+15 7 3 * * curl -sL -o /tmp/dbip.mmdb.gz https://download.db-ip.com/free/dbip-country-lite-$(date +\%Y-\%m).mmdb.gz && gunzip -f /tmp/dbip.mmdb.gz && mv /tmp/dbip.mmdb /opt/subwave/state/geo/dbip-country-lite.mmdb && systemctl restart kultura-dedi

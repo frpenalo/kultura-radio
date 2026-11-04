@@ -1,0 +1,6 @@
+{
+ "redes": [
+  {"id": "instagram", "nombre": "Instagram", "url": "https://www.instagram.com/kulturaradio"},
+  {"id": "facebook", "nombre": "Facebook", "url": "https://www.facebook.com/kulturaradio"}
+ ]
+}

@@ -8,6 +8,8 @@ import * as subsonic from '../music/subsonic.js';
 import * as dj from '../llm/dj.js';
 import * as library from '../music/library.js';
 import { getFullContext } from '../context.js';
+import { krGeneroDelBloque, krMinutosHastaGenero } from '../music/picker.js';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { queue } from '../broadcast/queue.js';
 import * as djAgent from '../broadcast/dj-agent.js';
 import * as session from '../broadcast/session.js';
@@ -21,6 +23,66 @@ import {
 export const router = express.Router();
 
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+// KR_PARQUEO ----------------------------------------------------------------
+// Pedido de OTRO genero: no se corta el bloque; se guarda y sale cuando entre
+// el proximo bloque de su genero (el oyente recibe el aviso con el estimado).
+const KR_PARQUEO_FILE = '/var/sub-wave/pedidos-parqueados.json';
+const krParqueoLee = (): any[] => {
+  try {
+    if (existsSync(KR_PARQUEO_FILE)) return JSON.parse(readFileSync(KR_PARQUEO_FILE, 'utf8')) || [];
+  } catch {}
+  return [];
+};
+const krParqueoEscribe = (lista: any[]) => {
+  try { writeFileSync(KR_PARQUEO_FILE, JSON.stringify(lista, null, 1)); } catch {}
+};
+
+let krLiberando = false;
+setInterval(async () => {
+  if (krLiberando) return;
+  krLiberando = true;
+  try {
+    const lista = krParqueoLee();
+    if (!lista.length) return;
+    const ahora = Date.now();
+    const generoActual = krGeneroDelBloque();
+    const quedan: any[] = [];
+    for (const e of lista) {
+      if (e.expiraEn && ahora > e.expiraEn) continue;           // vencido: fuera
+      if (e.genero !== generoActual) { quedan.push(e); continue; }
+      try {
+        const ctx = await getFullContext();
+        const introScript = await dj.generateIntro({
+          track: e.track,
+          context: ctx,
+          requestedBy: e.requester,
+          requestText: `${e.texto} [NOTA: el oyente la pidio hace un rato y le PROMETISTE ponerla en el bloque de ${e.genero}; ya llego el bloque, cumple la promesa con sabor.]`,
+          recap: queue.getDjRecap(),
+          recentTracks: queue.getRecentTracks(),
+          recentOpeners: queue.getRecentOpeners(),
+        });
+        await queue.push({
+          track: e.track, requestedBy: e.requester,
+          intent: 'request', introScript, introKind: 'dj-speak',
+        });
+        session.appendTurn({
+          role: 'dj', kind: 'request',
+          text: introScript || `Pedido parqueado al aire: "${e.track.title}".`,
+          meta: { trackId: e.track.id, requester: e.requester },
+        });
+        queue.log('request', `parqueado liberado en bloque ${generoActual}: ${e.track.title}`);
+      } catch (err: any) {
+        queue.log('error', `liberando parqueado: ${err.message}`);
+        quedan.push(e);                                          // reintenta luego
+      }
+    }
+    krParqueoEscribe(quedan);
+  } finally {
+    krLiberando = false;
+  }
+}, 45_000);
+// KR_PARQUEO end --------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // In-memory request ledger. Each POST /request mints an entry; the background
@@ -254,7 +316,8 @@ async function resolveRequest(entry) {
   if (!pick) {
     const krStop = new Set(['de','del','la','el','los','las','y','con','a','feat','ft','un','una','pon','ponme','quiero','escuchar','oir','cancion','tema','reproduce','dale','por','favor','me','que','algo','esa','ese','lo']);
     const krReq = krNorm(text);
-    const krReqW = krReq.split(' ').filter((w: string) => w.length >= 3 && !krStop.has(w));
+    const krArtW = new Set(krNorm(matched.artist || '').split(' ').filter((w: string) => w.length >= 3));
+    const krReqW = krReq.split(' ').filter((w: string) => w.length >= 3 && !krStop.has(w) && !krArtW.has(w));
     const krWM = (tw: string) => krReqW.some((rw: string) => rw === tw
       || (tw.length >= 5 && rw.length >= 5 && krLev(tw, rw) <= 2)
       || (tw.length >= 4 && rw.length >= 4 && (rw.indexOf(tw) === 0 || tw.indexOf(rw) === 0)));
@@ -274,7 +337,9 @@ async function resolveRequest(entry) {
       const tt = krClean(x.title), ar = krNorm(x.artist);
       const ttW = tt.split(' ').filter((w: string) => w.length >= 3 && !krStop.has(w));
       let sc = 0;
-      if (tt && tt === krReq) sc = 100;
+      const ttSoloArtista = ttW.length > 0 && ttW.every((w: string) => krArtW.has(w));
+      if (ttSoloArtista) sc = 0;
+      else if (tt && tt === krReq) sc = 100;
       else if (tt && tt.length >= 4 && krReq.indexOf(tt) >= 0) sc = 85;
       else if (ttW.length) {
         const m = ttW.filter(krWM).length, cov = m / ttW.length;
@@ -289,6 +354,35 @@ async function resolveRequest(entry) {
     if (krScored.length) { pick = krScored[0].x; pickSource = 'exact-title'; }
   }
   // KR_EXACT_MATCH end ------------------------------------------------------
+
+  // KR_HONESTO ---------------------------------------------------------------
+  // Si el oyente nombro una CANCION especifica y el matcher exacto no la
+  // encontro, NO caemos al cascade de abajo (esta pensado para vibras y
+  // generos, e "inventa" un pick cualquiera). Con artista conocido: otra del
+  // mismo artista, dicha con honestidad. Sin artista o sin stock: rechazo
+  // con la verdad para que el oyente pida otra.
+  let krSubstitute = false;
+  if (!pick && namedSongTitle) {
+    if (matched.artist) {
+      pick = await pickByArtistAndSort({
+        artistName: matched.artist, sort: null, scope: matched.scope, recentIds,
+      });
+      if (pick) {
+        // searchArtists es laxo (Queen -> Ivy Queen): valida que el artista
+        // del pick sea el pedido (igual, o prefijo en limite de palabra,
+        // p.ej. "juan luis guerra" vs "Juan Luis Guerra 4.40").
+        const ka = krNorm(matched.artist), pa = krNorm(pick.artist);
+        const esElMismo = pa === ka || pa.indexOf(ka + ' ') === 0 || ka.indexOf(pa + ' ') === 0;
+        if (esElMismo) { pickSource = 'kr-sustituto-artista'; krSubstitute = true; }
+        else { pick = null; }
+      }
+    }
+    if (!pick) {
+      queue.log('miss', `KR_HONESTO: "${text}" no esta en la biblioteca`);
+      return failed(`Esa no la tengo todav\u00eda, ${requester} \ud83d\ude4f Prueba con otra canci\u00f3n, o dime solo el artista y te pongo algo suyo.`);
+    }
+  }
+  // KR_HONESTO end -----------------------------------------------------------
 
   // 2a. Artist path — resolve the artist's albums and pick a track. Used for
   // "latest/oldest album by X", album requests, AND bare "play <artist>"
@@ -421,16 +515,42 @@ async function resolveRequest(entry) {
 
   if (!pick) {
     queue.log('miss', `Nothing matched "${text}"`);
-    return failed(`Sorry ${requester}, nothing in the crates matched that.`);
+    return failed(`No encontr\u00e9 nada con eso, ${requester} \ud83d\ude4f Prueba con artista y canci\u00f3n.`);
   }
   queue.log('request', `resolved via ${pickSource}: ${pick.title} — ${pick.artist}`);
+
+  // KR_PARQUEO: si la cancion es de OTRO genero y su bloque llega pronto, se
+  // parquea en vez de cortar el set actual.
+  const krGenPick = String(pick.genre || '').trim();
+  const krGenBloque = krGeneroDelBloque();
+  if (krGenPick && krGenPick !== krGenBloque) {
+    const krMin = krMinutosHastaGenero(krGenPick);
+    if (krMin != null && krMin > 5 && krMin <= 90) {
+      const lista = krParqueoLee();
+      if (lista.length < 20) {
+        lista.push({
+          track: pick, requester, texto: text, genero: krGenPick,
+          creadoEn: Date.now(), expiraEn: Date.now() + 3 * 3600_000,
+        });
+        krParqueoEscribe(lista);
+        queue.log('request', `parqueado para bloque ${krGenPick} (~${krMin} min): ${pick.title}`);
+        return resolved({
+          ack: `¡Buena esa, ${requester}! Ahora estamos en pleno bloque de ${krGenBloque.toLowerCase()}, así que te guardo "${pick.title}" de ${pick.artist} para el próximo bloque de ${krGenPick.toLowerCase()}, en ~${krMin} minutos. No te muevas 🎶`,
+          track: { title: pick.title, artist: pick.artist },
+          queuePosition: null,
+        });
+      }
+    }
+  }
 
   // 3. Generate DJ intro that mentions the request
   const introScript = await dj.generateIntro({
     track: pick,
     context: ctx,
     requestedBy: requester,
-    requestText: text,
+    requestText: krSubstitute
+      ? `${text} [NOTA: la canci\u00f3n exacta pedida NO est\u00e1 en la biblioteca; vas a poner "${pick.title}" del mismo artista. Dilo con honestidad y buena onda: no la tienes todav\u00eda, pero mandas esta.]`
+      : text,
     recap: queue.getDjRecap(),
     recentTracks: queue.getRecentTracks(),
     recentOpeners: queue.getRecentOpeners(),
@@ -451,7 +571,9 @@ async function resolveRequest(entry) {
   });
 
   return resolved({
-    ack: matched.ack,
+    ack: krSubstitute
+      ? `No tengo esa exacta todav\u00eda \ud83d\ude4f pero te mando "${pick.title}" de ${pick.artist}.`
+      : matched.ack,
     track: { title: pick.title, artist: pick.artist },
     queuePosition: queue.upcoming.length,
   });

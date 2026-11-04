@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instala la app · Kultura Radio</title>
+<meta name="description" content="Instala la app de Kultura Radio en tu Android: la radio que nos une, con dedicatorias de voz y pedidos al DJ.">
+<link rel="icon" type="image/png" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#071725;--surface:#0D2033;--cream:#F4F7FB;--muted:rgba(244,247,251,.55);
+    --faint:rgba(244,247,251,.10);--terra:#FF6B00;--amber:#FFB800;--teal:#FF1744}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--cream);font-family:"Outfit",system-ui,sans-serif;
+    min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:28px 18px 40px;text-align:center}
+  .mark{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#FF1744,#FF6B00 55%,#FFB800);display:grid;place-items:center;margin-bottom:14px}
+  .mark span{font-family:"Fraunces",serif;font-weight:700;font-size:34px}
+  h1{font-family:"Fraunces",serif;font-weight:600;font-size:26px;margin-bottom:4px}
+  .tag{font-size:11px;color:var(--amber);letter-spacing:2px;text-transform:uppercase;margin-bottom:22px}
+  .card{background:var(--surface);border:1px solid var(--faint);border-radius:18px;padding:22px;max-width:420px;width:100%;margin-bottom:14px}
+  #qr{background:#fff;border-radius:12px;padding:12px;display:inline-block;margin-bottom:14px}
+  #qr img,#qr canvas{display:block}
+  .btn{display:block;background:var(--amber);color:#071725;font-weight:600;font-size:16px;
+    text-decoration:none;border-radius:14px;padding:16px;margin-top:6px}
+  .hint{font-size:13px;color:var(--muted);line-height:1.6;margin-top:14px;text-align:left}
+  .hint b{color:var(--cream)}
+  .ios{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .foot{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:auto;padding-top:24px}
+</style>
+</head>
+<body>
+<h1 style="margin:0 0 6px;line-height:0"><img src="/icons/lockup-dark.png" alt="Kultura Radio, la que nos une" style="width:min(320px,80vw);height:auto;display:inline-block"></h1>
+<div class="tag">instala la app</div>
+
+<div class="card">
+  <div id="qr"></div>
+  <div style="font-size:13px;color:var(--muted)">Escanea con la cámara del teléfono<br>o toca el botón si ya estás en tu Android</div>
+  <a class="btn" href="/kultura.apk">Descargar la app (Android)</a>
+  <div class="hint">
+    <b>Para instalar:</b><br>
+    1. Descarga y abre el archivo desde la notificación.<br>
+    2. Si Android avisa "app desconocida", toca <b>Configuración → Permitir de esta fuente</b> y luego <b>Instalar</b>.<br>
+    3. ¿Ya la tenías? Instala encima y listo, se actualiza sola.
+  </div>
+  <div class="ios">iPhone: muy pronto. Mientras, escúchanos en kulturaradio.com desde Safari.</div>
+</div>
+
+<div class="foot">Kultura Radio · Raleigh, NC<br><span style="opacity:.7">Kultura Radio es un proyecto de Softmedia</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  new QRCode(document.getElementById("qr"), {
+    text: "https://kulturaradio.com/kultura.apk",
+    width: 190, height: 190, correctLevel: QRCode.CorrectLevel.M
+  });
+</script>
+</body>
+</html>

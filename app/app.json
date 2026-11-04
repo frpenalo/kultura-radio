@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "Kultura Radio",
+    "slug": "kultura-radio",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#071725",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#071725"
+    },
+    "ios": {
+      "bundleIdentifier": "com.kulturaradio.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        }
+      }
+    },
+    "android": {
+      "package": "com.kulturaradio.app",
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "backgroundColor": "#071725",
+        "foregroundImage": "./assets/adaptive-fg.png"
+      },
+      "permissions": [
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.WAKE_LOCK",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ],
+      "blockedPermissions": []
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true,
+          "microphonePermission": "Kultura Radio usa el micr\u00f3fono solo para grabar tu dedicatoria."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a28657af-3f89-4ebe-9e59-80e41e528601"
+      }
+    },
+    "owner": "frpenalo"
+  }
+}

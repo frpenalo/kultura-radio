@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>Kultura Radio — la que nos une</title>
 <meta name="description" content="Kultura Radio · La que nos une. Música, cultura y comunidad latina del Triangle.">
-<meta name="theme-color" content="#140F0C">
+<meta name="theme-color" content="#071725">
+<link rel="icon" type="image/png" href="/icons/favicon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,9 +18,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css">
 <style>
   :root{
-    --bg:#140F0C; --surface:#1F1813; --surface2:#2A211A;
-    --cream:#F5ECDF; --muted:rgba(245,236,223,.55); --faint:rgba(245,236,223,.10);
-    --terra:#D2693F; --amber:#E9A93C; --teal:#2FA193;
+    --bg:#071725; --surface:#0D2033; --surface2:#143049;
+    --cream:#F4F7FB; --muted:rgba(244,247,251,.55); --faint:rgba(244,247,251,.10);
+    --terra:#FF6B00; --amber:#FFB800; --teal:#FF1744;
     --top:56px; --bottom:62px;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -30,14 +31,14 @@
   /* TOP BAR */
   .topbar{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;gap:10px;
     padding:calc(env(safe-area-inset-top) + 10px) 18px 10px;background:rgba(20,15,12,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--faint)}
-  .mark{width:32px;height:32px;border-radius:9px;background:var(--terra);display:grid;place-items:center;flex:none}
+  .mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#FF1744,#FF6B00 55%,#FFB800);display:grid;place-items:center;flex:none}
   .mark span{font-family:"Fraunces",serif;font-weight:700;font-size:20px;color:var(--cream);margin-top:-2px}
   .tb-brand h1{font-family:"Fraunces",serif;font-weight:600;font-size:16px;line-height:1}
   .tb-brand p{font-size:9.5px;color:var(--amber);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
   .live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
   .dot{width:7px;height:7px;border-radius:50%;background:#6b6258}
   .dot.on{background:var(--teal);animation:pulse 2s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,161,147,.5)}70%{box-shadow:0 0 0 8px rgba(47,161,147,0)}100%{box-shadow:0 0 0 0 rgba(47,161,147,0)}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,23,68,.5)}70%{box-shadow:0 0 0 8px rgba(255,23,68,0)}100%{box-shadow:0 0 0 0 rgba(255,23,68,0)}}
 
   /* CONTENT */
   .content{padding-top:calc(env(safe-area-inset-top) + var(--top));padding-bottom:calc(env(safe-area-inset-bottom) + var(--bottom) + 70px);min-height:100dvh}
@@ -53,7 +54,7 @@
   .disc::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:var(--bg);border:1px solid var(--faint)}
   .disc.spin{animation:spin 8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .play{width:90px;height:90px;border-radius:50%;border:none;background:var(--amber);color:#1a1206;display:grid;place-items:center;cursor:pointer;z-index:2;box-shadow:0 10px 30px rgba(233,169,60,.4);transition:transform .15s}
+  .play{width:90px;height:90px;border-radius:50%;border:none;background:var(--amber);color:#071725;display:grid;place-items:center;cursor:pointer;z-index:2;box-shadow:0 10px 30px rgba(255,107,0,.4);transition:transform .15s}
   .play:active{transform:scale(.94)}
   .play svg{width:38px;height:38px;margin-left:3px}
   .play.playing svg{margin-left:0}
@@ -79,13 +80,13 @@
 
   .field{display:flex;gap:8px;margin-top:12px}
   .field input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--faint);border-radius:12px;padding:13px 14px;color:var(--cream);font-family:inherit;font-size:15px}
-  .field input::placeholder{color:rgba(245,236,223,.35)}
-  .field button{background:var(--amber);color:#1a1206;border:none;border-radius:12px;padding:0 18px;font-weight:600;font-family:inherit;cursor:pointer}
+  .field input::placeholder{color:rgba(244,247,251,.35)}
+  .field button{background:var(--amber);color:#071725;border:none;border-radius:12px;padding:0 18px;font-weight:600;font-family:inherit;cursor:pointer}
   .namefield{width:100%;background:var(--bg);border:1px solid var(--faint);border-radius:12px;padding:12px 14px;color:var(--cream);font-family:inherit;font-size:14px;margin-top:12px}
-  .namefield::placeholder{color:rgba(245,236,223,.35)}
+  .namefield::placeholder{color:rgba(244,247,251,.35)}
   .ack{font-size:14px;color:var(--teal);margin-top:12px;display:none;line-height:1.5}
 
-  .btn-install{width:100%;background:var(--teal);color:#06201d;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
+  .btn-install{width:100%;background:var(--teal);color:#FFFFFF;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
   .btn-install .ti{font-size:20px}
   .install-tip{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:10px;display:none}
   .install-tip.show{display:block}
@@ -102,12 +103,12 @@
     display:none;align-items:center;gap:12px;padding:9px 14px;margin:0 8px;border-radius:14px;
     background:rgba(42,33,26,.96);backdrop-filter:blur(12px);border:1px solid var(--faint);box-shadow:0 8px 24px rgba(0,0,0,.4)}
   .mini.show{display:flex}
-  .mini .mi-art{width:38px;height:38px;border-radius:8px;background:var(--terra);display:grid;place-items:center;flex:none}
+  .mini .mi-art{width:38px;height:38px;border-radius:8px;background:linear-gradient(135deg,#FF1744,#FF6B00 55%,#FFB800);display:grid;place-items:center;flex:none}
   .mini .mi-art span{font-family:"Fraunces",serif;font-weight:700;font-size:18px;color:var(--cream);margin-top:-2px}
   .mini .mi-info{flex:1;min-width:0}
   .mini .mi-t{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mini .mi-a{font-size:11px;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mini .mi-btn{width:42px;height:42px;border-radius:50%;border:none;background:var(--amber);color:#1a1206;display:grid;place-items:center;cursor:pointer;flex:none}
+  .mini .mi-btn{width:42px;height:42px;border-radius:50%;border:none;background:var(--amber);color:#071725;display:grid;place-items:center;cursor:pointer;flex:none}
   .mini .mi-btn svg{width:20px;height:20px}
 
   /* TAB BAR */
@@ -121,8 +122,7 @@
 </head>
 <body>
 <div class="topbar">
-  <div class="mark"><span>K</span></div>
-  <div class="tb-brand"><h1>Kultura Radio</h1><p>la que nos une</p></div>
+  <h1 style="margin:0;line-height:0"><img src="/icons/wordmark-dark.png" alt="Kultura Radio, la que nos une" style="height:26px;width:auto;display:block"></h1>
   <div class="live"><span class="dot" id="dot"></span><span id="liveTxt">conectando</span></div>
 </div>
 
@@ -165,6 +165,8 @@
       <h3 id="showName">Programación continua</h3>
       <p id="showDesc">El DJ Kultura elige la música según la hora y el ambiente.</p>
     </div>
+    <div class="sec-label">Hoy en Kultura</div>
+    <div class="card"><div id="parrillaHoy"></div></div>
     <div class="sec-label">Lo que viene</div>
     <div class="card" id="upcomingCard">
       <div id="upcoming"></div>
@@ -179,22 +181,28 @@
     <div class="sec-label" style="margin-top:18px">Anúnciate con nosotros</div>
     <div class="card">
       <h3>Tu negocio en la radio que nos une</h3>
-      <p>Llega a toda la comunidad latina del Triangle.</p>
+      <p>Llega a toda la comunidad latina del Triangle. <a href="/anunciate" style="color:var(--amber);text-decoration:none;font-weight:600">Conoce los formatos →</a></p>
       <div class="field">
         <input id="adContact" placeholder="Nombre y teléfono / negocio" maxlength="120">
         <button id="adSend">Info</button>
       </div>
       <div class="ack" id="adAck"></div>
     </div>
-    <div class="sec-label">Síguenos</div>
-    <div class="social">
-      <a href="#" id="igLink"><i class="ti ti-brand-instagram"></i>Instagram</a>
-      <a href="#" id="fbLink"><i class="ti ti-brand-facebook"></i>Facebook</a>
-      <a href="#" id="waLink"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>
-    </div>
+    <div class="sec-label" id="vozLabel" style="display:none">Tu voz en Kultura</div>
+    <button class="btn-install" id="vozBtn" style="display:none"><i class="ti ti-microphone"></i>Tu voz en Kultura</button>
+    <div class="install-tip" id="vozSub" style="display:none"></div>
+    <div class="sec-label" id="socialLabel" style="display:none">Síguenos</div>
+    <div class="social" id="socialRow"></div>
+    <div class="sec-label" style="margin-top:18px">Comparte</div>
+    <button class="btn-install" id="shareBtn"><i class="ti ti-share"></i>Comparte Kultura</button>
+    <div class="install-tip" id="shareAck"></div>
+    <div class="sec-label" id="apoyaLabel" style="display:none;margin-top:18px">Apoya a Kultura</div>
+    <button class="btn-install" id="apoyaBtn" style="display:none"><i class="ti ti-heart"></i>Apoya a Kultura</button>
+    <div class="install-tip" id="apoyaSub" style="display:none"></div>
     <div class="mission">
-      <p>"Música, cultura y comunidad — la voz de todos los latinos del Triangle."</p>
+      <p>"Música, cultura y comunidad · la voz de todos los latinos del Triangle."</p>
       <small>Kultura Radio · Raleigh, NC</small>
+      <small style="display:block;margin-top:4px;opacity:.7">Kultura Radio es un proyecto de Softmedia</small>
     </div>
   </section>
 </main>
