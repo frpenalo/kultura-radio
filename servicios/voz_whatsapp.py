@@ -21,6 +21,8 @@ CATS = {"1": "lo-que-nos-une", "2": "saludos", "3": "sugerencias", "4": "contact
 DUR_MIN, DUR_MAX = 2.0, 90.0
 
 _h = {}  # helpers inyectados: transcribe(fp), log(msg), E (env dict)
+import threading
+PROCESO_AUDIO = threading.BoundedSemaphore(2)   # audios procesandose a la vez (global)
 
 def init(transcribe, log, E):
     _h.update(transcribe=transcribe, log=log, E=E)
@@ -180,7 +182,14 @@ def procesar_audio(cat, tel, crudo_bytes, origen="whatsapp"):
         os.remove(mp3tmp)
         return False, ("Tu audio dura %.0f segundos; buscamos entre %d y %d. "
                        "¿Lo regrabas? \U0001F399️" % (dur, DUR_MIN, DUR_MAX))
-    texto = _h["transcribe"](mp3tmp)
+    if not PROCESO_AUDIO.acquire(timeout=60):
+        os.remove(mp3tmp)
+        return False, "Estamos recibiendo muchos audios \U0001F605 Intenta de nuevo en un ratito."
+    try:
+        texto = _h["transcribe"](mp3tmp)
+        juicio = None if cat in ("sugerencias", "contacto") else _juzgar(cat, texto)
+    finally:
+        PROCESO_AUDIO.release()
     if cat in ("sugerencias", "contacto"):
         destino = os.path.join(DIR, cat, "aprobados", base + ".mp3")
         os.rename(mp3tmp, destino)
@@ -190,14 +199,14 @@ def procesar_audio(cat, tel, crudo_bytes, origen="whatsapp"):
             f.write(json.dumps({"ts": ts, "tel": _anon(tel), "cat": cat,
                                 "texto": texto, "audio": destino}, ensure_ascii=False) + "\n")
         return True, "¡Recibido! Gracias por escribirnos \U0001F64F"
-    ok, motivo = _juzgar(cat, texto)
+    ok, motivo = juicio
     sub = "aprobados" if ok else "rechazados"
     destino = os.path.join(DIR, cat, sub, base + ".mp3")
     os.rename(mp3tmp, destino)
     _indice({"ts": ts, "tel": _anon(tel), "cat": cat, "archivo": destino,
              "transcript": texto, "veredicto": sub, "motivo": motivo,
              "dur": round(dur, 1)})
-    _h["log"]("voz %s [%s]: %s (%s)" % (sub, cat, texto[:60], motivo))
+    _h["log"]("voz %s [%s] %.1fs" % (sub, cat, dur))
     if ok:
         return True, ("¡Buenísimo! ❤️ Tu voz ya es parte de Kultura. "
                       "Mantente pendiente del aire \U0001F4FB")

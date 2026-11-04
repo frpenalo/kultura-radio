@@ -18,6 +18,7 @@ DB = "/opt/subwave/push/tokens.json"
 EXPO = "https://exp.host/--/api/v2/push/send"
 TOK_RX = re.compile(r"^Expo(nent)?PushToken\[[A-Za-z0-9_\-]{10,60}\]$")
 LOCK = threading.Lock()
+_altas_ip = {}   # ip -> [timestamps] de tokens nuevos (tope diario)
 MAX_TOKENS = 50000
 
 def load():
@@ -77,11 +78,21 @@ class H(BaseHTTPRequestHandler):
             t = str(data.get("token", ""))
             if not TOK_RX.match(t):
                 return self._json(400, {"error": "bad token"})
+            import time as _t
+            ip = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
             with LOCK:
                 toks = load()
                 if t not in toks:
+                    ahora = _t.time()
+                    altas = [x for x in _altas_ip.get(ip, []) if ahora - x < 86400]
+                    if len(altas) >= 10:
+                        return self._json(429, {"error": "limite"})
                     if len(toks) >= MAX_TOKENS:
                         return self._json(429, {"error": "full"})
+                    altas.append(ahora)
+                    _altas_ip[ip] = altas
+                    if len(_altas_ip) > 20000:
+                        _altas_ip.clear()
                     toks.append(t)
                     save(toks)
             return self._json(200, {"ok": True})

@@ -25,6 +25,14 @@ _spec_vw = _ilu.spec_from_file_location("voz_whatsapp", "/opt/subwave/push/voz_w
 vw = _ilu.module_from_spec(_spec_vw)
 _spec_vw.loader.exec_module(vw)
 
+_spec_tf = _ilu.spec_from_file_location("twilio_firma", "/opt/subwave/push/twilio_firma.py")
+twilio_firma = _ilu.module_from_spec(_spec_tf)
+_spec_tf.loader.exec_module(twilio_firma)
+
+def firma_twilio_ok(ruta, form, firma):
+    return twilio_firma.valida(E.get("TWILIO_AUTH_TOKEN", ""),
+                               "https://kulturaradio.com/api" + ruta, form, firma)
+
 GEO_PERMITIDOS = {"US", "CA", "GB", "MX"}
 
 # CURADOR — curaduria manual de la biblioteca.
@@ -137,6 +145,7 @@ threading.Thread(target=_hilo_np, daemon=True).start()
 _np_last_good = None
 _art_cache = {}
 last_by_ip = {}
+_dedi_intentos = {}   # ip -> [timestamps] de intentos de dedicatoria (aprobados o no)
 _telem_ip = {}   # ip -> [timestamps] de reportes de vuelo
 
 def env():
@@ -683,8 +692,11 @@ class H(BaseHTTPRequestHandler):
             return
         if self.path in ("/voz-llamada", "/voz-llamada-fin", "/voz-llamada-grabacion"):
             import urllib.parse as _up
-            n = int(self.headers.get("Content-Length", 0))
+            n = min(int(self.headers.get("Content-Length", 0)), 65536)
             form = _up.parse_qs(self.rfile.read(n).decode("utf-8", "ignore"))
+            if not firma_twilio_ok(self.path, form, self.headers.get("X-Twilio-Signature", "")):
+                log("webhook twilio con firma invalida en %s" % self.path)
+                self.send_response(403); self.end_headers(); return
             if self.path == "/voz-llamada-grabacion":
                 threading.Thread(target=vw.llamada_grabacion, args=(form,), daemon=True).start()
                 self.send_response(204)
@@ -703,8 +715,11 @@ class H(BaseHTTPRequestHandler):
             return
         if self.path == "/voz-whatsapp":
             import urllib.parse as _up
-            n = int(self.headers.get("Content-Length", 0))
+            n = min(int(self.headers.get("Content-Length", 0)), 65536)
             form = _up.parse_qs(self.rfile.read(n).decode("utf-8", "ignore"))
+            if not firma_twilio_ok(self.path, form, self.headers.get("X-Twilio-Signature", "")):
+                log("webhook twilio con firma invalida en %s" % self.path)
+                self.send_response(403); self.end_headers(); return
             try:
                 xml = vw.entrante(form)
             except Exception as e:
@@ -833,6 +848,15 @@ class H(BaseHTTPRequestHandler):
             if now - last_by_ip.get(ip, 0) < COOLDOWN_S:
                 return self._json(429, {"status": "cooldown",
                     "message": "Ya mandaste una dedicatoria hace poquito, espera unos minutos."})
+            intentos = [t for t in _dedi_intentos.get(ip, []) if now - t < 3600]
+            if len(intentos) >= 6:
+                _dedi_intentos[ip] = intentos
+                return self._json(429, {"status": "cooldown",
+                    "message": "Ya mandaste varias dedicatorias, intenta mas tarde."})
+            intentos.append(now)
+            _dedi_intentos[ip] = intentos
+            if len(_dedi_intentos) > 20000:
+                _dedi_intentos.clear()
         try:
             n = int(self.headers.get("Content-Length") or 0)
             if n > MAX_B64 + 4096:
@@ -857,18 +881,23 @@ class H(BaseHTTPRequestHandler):
             return self._json(200, {"status": "rejected",
                 "message": "La grabacion debe durar entre 2 y 15 segundos."})
 
-        # Normalizar volumen y convertir a mp3 (lo que sea que mande el telefono)
-        conv = subprocess.run(["ffmpeg", "-y", "-i", raw, "-af",
-                               "loudnorm=I=-16:TP=-1.5:LRA=11", "-ac", "1",
-                               "-ar", "44100", "-b:a", "128k", mp3],
-                              capture_output=True, timeout=60)
-        if conv.returncode != 0 or not os.path.exists(mp3):
-            log("ffmpeg fallo en %s" % did)
-            return self._json(200, {"status": "rejected", "message": "No pude procesar el audio, intenta de nuevo."})
-
-        text = transcribe(mp3)
-        ok, motivo = moderate(text)
-        log("dedi %s de '%s' (%.1fs) [%s] %s :: %s" % (did, name, dur, "OK" if ok else "RECHAZADA", motivo, text[:120]))
+        if not vw.PROCESO_AUDIO.acquire(timeout=60):
+            return self._json(503, {"status": "rejected",
+                "message": "Estamos recibiendo muchas dedicatorias, intenta en un ratito."})
+        try:
+            # Normalizar volumen y convertir a mp3 (lo que sea que mande el telefono)
+            conv = subprocess.run(["ffmpeg", "-y", "-i", raw, "-af",
+                                   "loudnorm=I=-16:TP=-1.5:LRA=11", "-ac", "1",
+                                   "-ar", "44100", "-b:a", "128k", mp3],
+                                  capture_output=True, timeout=60)
+            if conv.returncode != 0 or not os.path.exists(mp3):
+                log("ffmpeg fallo en %s" % did)
+                return self._json(200, {"status": "rejected", "message": "No pude procesar el audio, intenta de nuevo."})
+            text = transcribe(mp3)
+            ok, motivo = moderate(text)
+        finally:
+            vw.PROCESO_AUDIO.release()
+        log("dedi %s (%.1fs) [%s]" % (did, dur, "OK" if ok else "RECHAZADA"))
         with open(RECH + "/../dedis.log", "a") as f:
             f.write("%s\t-\t%s\t%s\t%s\t%s\n" % (did, name, "OK" if ok else "NO", motivo, text.replace("\t", " ")[:300]))
 

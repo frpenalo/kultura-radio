@@ -1,6 +1,11 @@
+# Versiones FIJAS (4-nov-2026). Para actualizar: probar la imagen nueva,
+# confirmar que controller-overrides sigue aplicando, y recien ahi cambiar
+# el digest aqui. Ver docs/OPERATIONS.md.
 services:
+  web:
+    image: ghcr.io/perminder-klair/subwave-web@sha256:2799c0b9a779f6733fa3e67709d2b6f6132ac22c727774503814f859f3c75d85
   navidrome:
-    image: deluan/navidrome:latest
+    image: deluan/navidrome@sha256:c4b5cb36a790b3eb63ca6a68bbe2fe149c2d7fa2e586f7a480e61db630e6664b
     container_name: sub-wave-navidrome
     restart: unless-stopped
     ports:
@@ -13,21 +18,24 @@ services:
       - ./music:/music:ro
       - ./state/navidrome:/data
   caddy:
+    image: ghcr.io/perminder-klair/subwave-caddy@sha256:6954eb38ee164452b457362c415c00b31360ff566e02da4cab8ccc06eb072e31
     volumes:
       - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./pwa:/srv/pwa:ro
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama@sha256:05b6fe5143ed006d6d4abd39bdd575f962a5822bdf81e6fbb5e6894eb984ab9c
     container_name: sub-wave-ollama
     restart: unless-stopped
     volumes:
       - ./state/ollama:/root/.ollama
   broadcast:
+    image: ghcr.io/perminder-klair/subwave-broadcast@sha256:1b7528c8e1c7e91c4dbada56f91c56213d0d21d7077527de7735c01dbd9b0c21
     ports:
       - "8090:8090"
     volumes:
       - ./liquidsoap/radio.liq:/etc/liquidsoap/radio.liq:ro
   controller:
+    image: ghcr.io/perminder-klair/subwave-controller@sha256:798ee1623125f97fe42ea7b468ce0be8928233d4b68bbb87f963a9402e1ce2f5
     environment:
       - CLOUD_TTS_SPEED=1.18
     volumes:

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Todo el Python compila
+        run: python -m compileall -q capsules rotation servicios herramientas tests
+
+      - name: Todos los JSON son validos
+        run: |
+          fallo=0
+          for f in $(git ls-files '*.json'); do
+            python -m json.tool "$f" > /dev/null || { echo "JSON invalido: $f"; fallo=1; }
+          done
+          exit $fallo
+
+      - name: Firma de Twilio (vector de la libreria oficial)
+        run: python tests/test_firma_twilio.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Simulacion del reproductor (14 escenarios)
+        run: node app/tests/simulacion/simular.mjs app/src
+
+      - name: npm audit (informativo, no bloquea)
+        working-directory: app
+        run: npm audit --omit=dev || true
