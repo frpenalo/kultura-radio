@@ -2,7 +2,16 @@
 // se actualiza siempre y controles remotos (carro, audifonos) manejados por el
 // sistema. Reemplaza el MediaSession web que iOS ignoraba en la PWA instalada.
 import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
+import { requireOptionalNativeModule } from "expo-modules-core";
 import { APP_VER, BASE, STREAM, ARTWORK } from "./theme";
+
+// Modulo nativo propio (modules/kultura-audio): dice si hay llamada, si otra
+// app graba o si otra app suena. Sin el (web, simulacion) vale null y la
+// logica queda como antes.
+const KulturaAudio = requireOptionalNativeModule("KulturaAudio");
+function estadoAudio() {
+  try { return KulturaAudio ? KulturaAudio.estado() : null; } catch (e) { return null; }
+}
 
 // Fuentes de stream desde el servidor: primario (Live365, para que los
 // oyentes cuenten en sus reportes y licencias) y respaldo (nuestro VPS). El
@@ -75,6 +84,33 @@ let bufferDesde = 0;    // desde cuando esta atascado cargando
 let respaldoDesde = 0;  // desde cuando estamos en la fuente de respaldo
 let ultimoArranque = 0; // para no confundir la carga inicial con un corte
 
+// Llamada o grabacion en curso (telefono, WhatsApp, nota de voz): Android
+// pausa la radio y la reanuda SOLO al terminar, siempre que no le cambiemos la
+// fuente. Reconectar aqui seria peor que inutil: expo-audio suena aunque
+// Android le niegue el audio, o sea encima de la llamada. Se espera vigilando
+// cada 3 s; si al terminar Android no la reanudo, la reanudamos nosotros.
+let enInterrupcion = false;
+function interrumpido() {
+  const ea = estadoAudio();
+  return !!(ea && (ea.llamada || ea.grabando)) && (ea.llamada ? "llamada" : "grabacion");
+}
+function esperarInterrupcion(motivo) {
+  if (!enInterrupcion) { enInterrupcion = true; reporte("interrupcion", { motivo }); }
+  if (resumeTimer) clearTimeout(resumeTimer);
+  resumeTimer = setTimeout(function revisar() {
+    resumeTimer = null;
+    if (!wantPlay || player.playing) { enInterrupcion = false; return; }
+    if (interrumpido()) { resumeTimer = setTimeout(revisar, 3000); return; }
+    resumeTimer = setTimeout(() => {
+      resumeTimer = null;
+      enInterrupcion = false;
+      if (!wantPlay || player.playing) return;
+      reporte("fin-interrupcion");
+      startStream(lastMeta).catch(() => {});
+    }, 3000);
+  }, 3000);
+}
+
 function cambiarFuente(motivo) {
   fuenteIdx++;
   // Cada fuente tiene que fallar por su cuenta: si los cortes viejos de la
@@ -90,6 +126,7 @@ player.addListener("playbackStatusUpdate", (st) => {
     // Play desde el lock screen re-arma la intencion.
     wantPlay = true;
     bufferDesde = 0;
+    enInterrupcion = false;
     if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
     return;
   }
@@ -119,12 +156,21 @@ player.addListener("playbackStatusUpdate", (st) => {
   // Recien arrancado, el reproductor pasa un instante "sin cargar": eso es
   // carga normal, no un corte.
   if (!st.isLoaded && now - ultimoArranque < 6000) return;
+  const motivo = interrumpido();
+  if (motivo) { esperarInterrupcion(motivo); return; }
   const termino = !!st.didJustFinish || st.playbackState === "ended" || !st.isLoaded;
+  // Otra app tomo el audio (YouTube, Spotify): se le cede, no se pelea.
+  if (!termino) {
+    const ea = estadoAudio();
+    if (ea && ea.otraMusica) { reporte("cede-otra-app"); wantPlay = false; return; }
+  }
   if (termino) {
     // Se cuenta como corte solo si al vencer la espera SIGUE sin sonar.
     resumeTimer = setTimeout(() => {
       resumeTimer = null;
       if (!wantPlay || player.playing) return;
+      const m2 = interrumpido();
+      if (m2) { esperarInterrupcion(m2); return; }
       const t = Date.now();
       caidas = caidas.filter((x) => t - x < 120000);
       caidas.push(t);
@@ -143,14 +189,17 @@ player.addListener("playbackStatusUpdate", (st) => {
   resumeTimer = setTimeout(() => {
     resumeTimer = null;
     if (!wantPlay || player.playing) return;
+    const m2 = interrumpido();
+    if (m2) { esperarInterrupcion(m2); return; }
     intentos.push(Date.now());
     startStream(lastMeta).catch(() => {});
   }, [2500, 4000, 8000][intentos.length] || 8000);
 });
 
-// Al volver la app al frente: si queria sonar y esta muda, reengancha ya.
+// Al volver la app al frente: si queria sonar y esta muda, reengancha ya
+// (salvo en plena llamada: ahi espera la logica de interrupcion).
 export function reanudarSiQuiere() {
-  if (wantPlay && !player.playing) startStream(lastMeta).catch(() => {});
+  if (wantPlay && !player.playing && !interrumpido()) startStream(lastMeta).catch(() => {});
 }
 
 export async function startStream(meta) {

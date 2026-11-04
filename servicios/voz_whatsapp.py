@@ -138,13 +138,24 @@ def _juzgar(cat, texto):
         _h["log"]("voz juez error: %r" % e)
         return False, "no se pudo verificar"
 
+def _es_twilio(url):
+    from urllib.parse import urlparse
+    u = urlparse(url or "")
+    h = (u.hostname or "").lower()
+    return u.scheme == "https" and (h == "twilio.com" or h.endswith(".twilio.com"))
+
 def _descargar_audio(url):
+    # La URL llega en el POST del webhook, que cualquiera puede falsificar: solo
+    # se descarga de Twilio, y la llave va como header "unredirected" para que
+    # no viaje al servidor de almacenamiento al que Twilio redirige el audio.
     import base64
+    if not _es_twilio(url):
+        raise ValueError("media fuera de Twilio rechazada")
     sid = _h["E"].get("TWILIO_SID", "")
     tok = _h["E"].get("TWILIO_TOKEN", "")
     req = urllib.request.Request(url)
     if sid and tok:
-        req.add_header("Authorization",
+        req.add_unredirected_header("Authorization",
                        "Basic " + base64.b64encode(("%s:%s" % (sid, tok)).encode()).decode())
     return urllib.request.urlopen(req, timeout=30).read()
 
@@ -193,9 +204,20 @@ def procesar_audio(cat, tel, crudo_bytes, origen="whatsapp"):
     return False, ("Gracias por participar \U0001F64F Ese audio no lo podemos usar al "
                    "aire, pero puedes intentar con otro (recuerda: radio familiar).")
 
+_por_numero = {}   # telefono -> [timestamps]; tope anti-spam del webhook
+
 def entrante(form):
     """Maneja un POST del webhook de Twilio. Devuelve bytes TwiML."""
     tel = form.get("From", [""])[0]
+    ahora_rl = time.time()
+    lst = [t for t in _por_numero.get(tel, []) if ahora_rl - t < 3600]
+    if len(lst) >= 30:
+        _por_numero[tel] = lst
+        return _twiml_vacio()
+    lst.append(ahora_rl)
+    _por_numero[tel] = lst
+    if len(_por_numero) > 5000:
+        _por_numero.clear()
     body = (form.get("Body", [""])[0] or "").strip().lower()
     nmedia = int(form.get("NumMedia", ["0"])[0] or 0)
     estados = _estados()

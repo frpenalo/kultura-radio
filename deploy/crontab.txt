@@ -7,3 +7,4 @@
 0 14,20 * * * python3 /opt/subwave/kultura_capsule_holiday.py >> /opt/subwave/state/capsule_holiday.log 2>&1
 0 15,21 * * * python3 /opt/subwave/kultura_capsule_artist.py >> /opt/subwave/state/capsule_artist.log 2>&1
 15 7 3 * * curl -sL -o /tmp/dbip.mmdb.gz https://download.db-ip.com/free/dbip-country-lite-$(date +\%Y-\%m).mmdb.gz && gunzip -f /tmp/dbip.mmdb.gz && mv /tmp/dbip.mmdb /opt/subwave/state/geo/dbip-country-lite.mmdb && systemctl restart kultura-dedi
+15 9 * * * python3 /opt/subwave/limpieza_90d.py >> /opt/subwave/state/limpieza.log 2>&1

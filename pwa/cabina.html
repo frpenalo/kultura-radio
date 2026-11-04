@@ -64,7 +64,7 @@
       <tr><td>Puerto</td><td>8090</td></tr>
       <tr><td>Mountpoint</td><td>/live</td></tr>
       <tr><td>Usuario</td><td>source</td></tr>
-      <tr><td>Contraseña</td><td>CONTRASENA_DEL_DJ</td></tr>
+      <tr><td>Contraseña</td><td>Te la da la dirección de Kultura por mensaje privado</td></tr>
       <tr><td>Formato</td><td>MP3 · 128 a 192 kbps</td></tr>
     </table>
     <button class="copiar" id="btnCopiar">Copiar todos los datos</button>
@@ -78,7 +78,7 @@
         — hay versión para Windows y Mac.</li>
       <li>Ábrelo y entra a <b>Settings → Main → Server Settings → Add</b>.</li>
       <li>Escribe: Type <b>Icecast</b>, Address <b>kulturaradio.com</b>, Port <b>8090</b>,
-        Password <b>CONTRASENA_DEL_DJ</b>, IcecastMountpoint <b>/live</b>, Icecast user <b>source</b>. Guarda con <b>Add</b>.</li>
+        Password <b>(la que te dio la dirección)</b>, IcecastMountpoint <b>/live</b>, Icecast user <b>source</b>. Guarda con <b>Add</b>.</li>
       <li>En <b>Settings → Audio</b> elige tu fuente de sonido (tu consola o la salida de tu
         programa de DJ) y formato <b>MP3, 128 o 192 kbps</b>.</li>
       <li>Dale al botón de <b>play</b> de BUTT. Cuando diga "connected", estás AL AIRE.</li>
@@ -104,7 +104,7 @@
   document.getElementById("btnCopiar").addEventListener("click", function () {
     var texto = "Kultura Radio - datos de conexion DJ\n" +
       "Servidor: kulturaradio.com\nPuerto: 8090\nMountpoint: /live\n" +
-      "Usuario: source\nContrasena: CONTRASENA_DEL_DJ\nFormato: MP3 128-192 kbps";
+      "Usuario: source\nContrasena: (te la da la direccion)\nFormato: MP3 128-192 kbps";
     navigator.clipboard.writeText(texto).then(function () {
       var b = document.getElementById("btnCopiar");
       b.textContent = "Copiado ✓";

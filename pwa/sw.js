@@ -1,4 +1,4 @@
-var CACHE = "kultura-v20";
+var CACHE = "kultura-v23";
 var SHELL = ["/", "/app.js", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", function (e) {

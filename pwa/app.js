@@ -1,6 +1,11 @@
 (function () {
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
+  var esc = function (t) {
+    return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
   var audio = $("audio");
   var STREAM = "/stream.mp3";
   var ICON = location.origin + "/icons/icon-512.png";
@@ -181,7 +186,7 @@
         setMedia(t, a);
         var time = ctx.time || {}, w = ctx.weather || {}, chips = "";
         if (time.period) chips += chip("ti-clock-hour-4", PERIODS[time.period] || time.period);
-        if (np.album) chips += chip("ti-disc", np.album.replace("Kultura Radio - ", ""));
+        if (np.album) chips += chip("ti-disc", esc(np.album.replace("Kultura Radio - ", "")));
         if (w.temp != null) chips += chip("ti-temperature", w.temp + "°" + (w.tempUnit || "F"));
         $("chips").innerHTML = chips;
         $("dot").classList.add("on"); $("liveTxt").textContent = "en vivo";
@@ -214,7 +219,7 @@
         (d.hoy_lista || []).forEach(function (x) {
           var on = x.id === ahoraId;
           html += '<div class="row"><div class="info"><div class="t"' +
-            (on ? ' style="color:var(--amber)"' : '') + '>' + x.nombre +
+            (on ? ' style="color:var(--amber)"' : '') + '>' + esc(x.nombre) +
             (on ? ' \u00b7 en el aire' : '') + '</div><div class="a">' +
             fmtHora(x.desde) + ' \u2013 ' + fmtHora(x.hasta) + '</div></div></div>';
         });
@@ -232,7 +237,7 @@
         for (var i = 0; i < Math.min(up.length, 6); i++) {
           var s = up[i];
           html += '<div class="row"><div class="n">' + (i + 1) + '</div><div class="info"><div class="t">' +
-            (s.title || "—") + '</div><div class="a">' + (s.artist || "") + "</div></div></div>";
+            esc(s.title || "—") + '</div><div class="a">' + esc(s.artist || "") + "</div></div></div>";
         }
         $("upcoming").innerHTML = html;
       })
@@ -317,7 +322,7 @@
   var adContact = $("adContact"), adAck = $("adAck");
   $("adSend").addEventListener("click", function () {
     var v = adContact.value.trim(); if (!v) return;
-    location.href = "mailto:frpenalo@gmail.com?subject=" + encodeURIComponent("Anunciante - Kultura Radio") +
+    location.href = "mailto:hola@kulturaradio.com?subject=" + encodeURIComponent("Anunciante - Kultura Radio") +
       "&body=" + encodeURIComponent("Quiero anunciarme en Kultura Radio.\n\nContacto: " + v);
     adAck.style.display = "block"; adAck.style.color = "var(--teal)"; adAck.textContent = "¡Gracias! Se abre tu correo para enviarnos los datos.";
   });

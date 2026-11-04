@@ -188,7 +188,7 @@
   });
   $("masBtn").onclick=function(){offset+=100;cargar(true)};
   $("rescan").onclick=function(){
-    fetch("/api/curador/rescan",{method:"POST"}).then(function(){$("estado").textContent="Re-escaneo lanzado: en ~1 min la radio ve tus cambios."});
+    fetch("/api/curador/rescan",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}).then(function(){$("estado").textContent="Re-escaneo lanzado: en ~1 min la radio ve tus cambios."});
   };
   function papelera(){
     fetch("/api/curador/papelera").then(function(r){return r.json()})
@@ -196,7 +196,7 @@
   }
   $("vaciarBtn").onclick=function(){
     if(!confirm("¿Borrar DEFINITIVAMENTE todo lo que hay en la papelera?"))return;
-    fetch("/api/curador/vaciar",{method:"POST"}).then(function(r){return r.json()})
+    fetch("/api/curador/vaciar",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}).then(function(r){return r.json()})
       .then(function(d){alert("Borrados: "+(d.borrados||0));papelera()});
   };
   papelera();

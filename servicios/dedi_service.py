@@ -137,6 +137,7 @@ threading.Thread(target=_hilo_np, daemon=True).start()
 _np_last_good = None
 _art_cache = {}
 last_by_ip = {}
+_telem_ip = {}   # ip -> [timestamps] de reportes de vuelo
 
 def env():
     d = {}
@@ -652,6 +653,19 @@ class H(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path == "/telemetria":
+            ip = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
+            ahora = time.time()
+            with LOCK:
+                lst = [t for t in _telem_ip.get(ip, []) if ahora - t < 3600]
+                if len(lst) >= 120:
+                    _telem_ip[ip] = lst
+                    self.send_response(429); self.end_headers(); return
+                lst.append(ahora); _telem_ip[ip] = lst
+                if len(_telem_ip) > 5000:
+                    _telem_ip.clear()
+            arch = "/opt/subwave/state/telemetria/%s.jsonl" % time.strftime("%Y-%m-%d")
+            if os.path.exists(arch) and os.path.getsize(arch) > 20 * 1024 * 1024:
+                self.send_response(204); self.end_headers(); return
             try:
                 n = min(int(self.headers.get("Content-Length", 0)), 4000)
                 d = json.loads(self.rfile.read(n) or b"{}")
@@ -702,6 +716,12 @@ class H(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(xml)
             return
+        if self.path.startswith("/curador/") and \
+                "application/json" not in (self.headers.get("Content-Type") or ""):
+            return self._json(415, {"error": "se requiere JSON"})
+        if self.path.startswith("/curador/") and self.headers.get("Origin") and \
+                self.headers.get("Origin") != "https://kulturaradio.com":
+            return self._json(403, {"error": "origen no permitido"})
         if self.path == "/curador/voces/borrar":
             try:
                 n = int(self.headers.get("Content-Length", 0))
@@ -850,7 +870,7 @@ class H(BaseHTTPRequestHandler):
         ok, motivo = moderate(text)
         log("dedi %s de '%s' (%.1fs) [%s] %s :: %s" % (did, name, dur, "OK" if ok else "RECHAZADA", motivo, text[:120]))
         with open(RECH + "/../dedis.log", "a") as f:
-            f.write("%s\t%s\t%s\t%s\t%s\t%s\n" % (did, ip, name, "OK" if ok else "NO", motivo, text.replace("\t", " ")[:300]))
+            f.write("%s\t-\t%s\t%s\t%s\t%s\n" % (did, name, "OK" if ok else "NO", motivo, text.replace("\t", " ")[:300]))
 
         if not ok:
             os.replace(mp3, "%s/%s.mp3" % (RECH, did))

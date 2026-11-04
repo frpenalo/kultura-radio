@@ -1194,7 +1194,7 @@ function Mas({ themeKey, setThemeKey }) {
     const v = contact.trim();
     if (!v) return;
     Linking.openURL(
-      "mailto:frpenalo@gmail.com?subject=" + encodeURIComponent("Anunciante - Kultura Radio") +
+      "mailto:hola@kulturaradio.com?subject=" + encodeURIComponent("Anunciante - Kultura Radio") +
       "&body=" + encodeURIComponent("Quiero anunciarme en Kultura Radio.\n\nContacto: " + v)
     ).catch(() => {});
     setAck("¡Gracias! Se abre tu correo para enviarnos los datos.");
@@ -1290,6 +1290,9 @@ function Mas({ themeKey, setThemeKey }) {
       <View style={s.mission}>
         <Text style={s.missionP}>"Música, cultura y comunidad: la voz de todos los latinos del Triangle."</Text>
         <Text style={s.missionS}>KULTURA RADIO · RALEIGH, NC · APP {APP_VER}</Text>
+        <Pressable onPress={() => Linking.openURL(BASE + "/privacidad").catch(() => {})} hitSlop={10}>
+          <Text style={[s.missionS, { marginTop: 10, textDecorationLine: "underline" }]}>Política de privacidad</Text>
+        </Pressable>
       </View>
     </View>
   );

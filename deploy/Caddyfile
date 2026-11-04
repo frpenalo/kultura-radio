@@ -145,6 +145,8 @@ kulturaradio.com, www.kulturaradio.com {
 		# Landing de anunciantes: kulturaradio.com/anunciate
 		rewrite /anunciate /anunciate.html
 	rewrite /cabina /cabina.html
+	rewrite /privacidad /privacidad.html
+	rewrite /privacy /privacidad.html
 	rewrite /curador /curador.html
 		root * /srv/pwa
 		try_files {path} /index.html
