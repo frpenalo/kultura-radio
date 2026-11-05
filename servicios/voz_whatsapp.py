@@ -24,11 +24,14 @@ _h = {}  # helpers inyectados: transcribe(fp), log(msg), E (env dict)
 import threading
 PROCESO_AUDIO = threading.BoundedSemaphore(2)   # audios procesandose a la vez (global)
 
-def init(transcribe, log, E):
+def init(transcribe, log, E, despachar_aire=True):
     _h.update(transcribe=transcribe, log=log, E=E)
     for c in CATS.values():
         for sub in ("aprobados", "rechazados"):
             os.makedirs(os.path.join(DIR, c, sub), exist_ok=True)
+    if despachar_aire and not _h.get("hilo_aire"):
+        _h["hilo_aire"] = threading.Thread(target=_hilo_aire, daemon=True)
+        _h["hilo_aire"].start()
 
 BIENVENIDA = (
     "¡Hola! \U0001F44B Bienvenido a Kultura Radio, la que nos une.\n"
@@ -208,10 +211,105 @@ def procesar_audio(cat, tel, crudo_bytes, origen="whatsapp"):
              "dur": round(dur, 1)})
     _h["log"]("voz %s [%s] %.1fs" % (sub, cat, dur))
     if ok:
+        if cat == "saludos":
+            encolar_aire(destino, tel)
         return True, ("¡Buenísimo! ❤️ Tu voz ya es parte de Kultura. "
                       "Mantente pendiente del aire \U0001F4FB")
     return False, ("Gracias por participar \U0001F64F Ese audio no lo podemos usar al "
                    "aire, pero puedes intentar con otro (recuerda: radio familiar).")
+
+# ---------------------------------------------------------------------------
+# SALUDOS AL AIRE: los aprobados de "Tu saludo" (WhatsApp) y del buzon entran
+# a una fila. Sale maximo uno cada 15 min, de 7 am a 11 pm hora del Este, por
+# el canal de voz de las dedicatorias (say.txt), nunca encima de otra voz. Uno
+# que espere mas de 6 h se descarta (perdio el momento). Al sonar, el oyente de
+# WhatsApp recibe un aviso (dentro de la ventana de 24 h que permite WhatsApp).
+# La fila se guarda en disco para sobrevivir reinicios.
+# ---------------------------------------------------------------------------
+COLA_AIRE = DIR + "/cola-aire.json"
+AIRE_CADA_S = 15 * 60
+AIRE_HORAS = (7, 23)
+AIRE_MAX_ESPERA_S = 6 * 3600
+SAY = "/opt/subwave/state/say.txt"
+_cola_lock = threading.Lock()
+
+def _cola_leer():
+    try:
+        return json.load(open(COLA_AIRE, encoding="utf-8"))
+    except Exception:
+        return {"pendientes": [], "ultimo": 0}
+
+def _cola_guardar(c):
+    tmp = COLA_AIRE + ".tmp"
+    json.dump(c, open(tmp, "w", encoding="utf-8"))
+    os.replace(tmp, COLA_AIRE)
+
+def encolar_aire(archivo, tel):
+    with _cola_lock:
+        c = _cola_leer()
+        c["pendientes"].append({"archivo": archivo, "tel": tel, "ts": time.time()})
+        _cola_guardar(c)
+    _h["log"]("saludo a la fila del aire (%d en fila)" % len(c["pendientes"]))
+
+def _hora_et():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo("America/New_York")).hour
+
+def _avisar_sono(tel):
+    import base64, urllib.parse
+    E = _h["E"]
+    if not tel.startswith("whatsapp:") or not E.get("TWILIO_ACCOUNT"):
+        return
+    auth = base64.b64encode(("%s:%s" % (E["TWILIO_SID"], E["TWILIO_TOKEN"])).encode()).decode()
+    data = urllib.parse.urlencode({
+        "From": "whatsapp:+19193430798", "To": tel,
+        "Body": "¡Tu saludo acaba de sonar en Kultura! \U0001F4FB Gracias por ser parte de la radio que nos une. ❤️",
+    }).encode()
+    try:
+        urllib.request.urlopen(urllib.request.Request(
+            "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % E["TWILIO_ACCOUNT"],
+            data=data, headers={"Authorization": "Basic " + auth}), timeout=15).read()
+    except Exception as e:
+        _h["log"]("aviso de saludo al aire fallo: %r" % e)
+
+def turno_aire(ahora=None, hora=None, simular=False):
+    """Una vuelta del despachador. Devuelve lo que hizo (para pruebas)."""
+    ahora = ahora or time.time()
+    with _cola_lock:
+        c = _cola_leer()
+        vigentes = [p for p in c["pendientes"]
+                    if ahora - p["ts"] < AIRE_MAX_ESPERA_S and os.path.exists(p["archivo"])]
+        if len(vigentes) != len(c["pendientes"]):
+            c["pendientes"] = vigentes
+            _cola_guardar(c)
+        if not vigentes:
+            return "fila vacia"
+        h = _hora_et() if hora is None else hora
+        if not (AIRE_HORAS[0] <= h < AIRE_HORAS[1]):
+            return "fuera de horario"
+        if ahora - c.get("ultimo", 0) < AIRE_CADA_S:
+            return "muy pronto"
+        if os.path.exists(SAY):
+            return "voz ocupada"
+        p = vigentes.pop(0)
+        if not simular:
+            open(SAY, "w").write(p["archivo"].replace("/opt/subwave/state", "/var/sub-wave"))
+        c["pendientes"] = vigentes
+        c["ultimo"] = ahora
+        _cola_guardar(c)
+    if not simular:
+        _h["log"]("saludo al aire (%d quedan en fila)" % len(vigentes))
+        _avisar_sono(p["tel"])
+    return "al aire"
+
+def _hilo_aire():
+    while True:
+        try:
+            turno_aire()
+        except Exception as e:
+            _h["log"]("despachador de saludos: %r" % e)
+        time.sleep(30)
 
 _por_numero = {}   # telefono -> [timestamps]; tope anti-spam del webhook
 

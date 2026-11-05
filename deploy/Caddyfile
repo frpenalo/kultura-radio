@@ -81,6 +81,12 @@ kulturaradio.com, www.kulturaradio.com {
 		reverse_proxy 172.18.0.1:8098
 	}
 
+	@stripewh path /api/stripe-webhook
+	handle @stripewh {
+		uri strip_prefix /api
+		reverse_proxy 172.18.0.1:8098
+	}
+
 	@telem path /api/telemetria
 	handle @telem {
 		uri strip_prefix /api

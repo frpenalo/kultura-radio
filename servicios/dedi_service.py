@@ -244,6 +244,14 @@ try:
 except Exception as _e:
     log("voz init error: %r" % _e)
 
+_spec_ap = _ilu.spec_from_file_location("apoyos", "/opt/subwave/push/apoyos.py")
+apoyos = _ilu.module_from_spec(_spec_ap)
+_spec_ap.loader.exec_module(apoyos)
+try:
+    apoyos.init(log=log, E=E, encolar_aire=vw.encolar_aire)
+except Exception as _e:
+    log("apoyos init error: %r" % _e)
+
 def play_on_air(container_path):
     """Escribe en say.txt cuando este libre (el DJ pudo haberlo usado hace nada)."""
     for _ in range(40):
@@ -689,6 +697,16 @@ class H(BaseHTTPRequestHandler):
                 pass
             self.send_response(204)
             self.end_headers()
+            return
+        if self.path == "/stripe-webhook":
+            n = min(int(self.headers.get("Content-Length", 0)), 262144)
+            cuerpo = self.rfile.read(n)
+            codigo, trabajo = apoyos.recibir(cuerpo, self.headers.get("Stripe-Signature", ""))
+            if codigo != 200:
+                log("stripe webhook rechazado (firma)")
+            self.send_response(codigo); self.end_headers()
+            if trabajo:
+                threading.Thread(target=trabajo, daemon=True).start()
             return
         if self.path in ("/voz-llamada", "/voz-llamada-fin", "/voz-llamada-grabacion"):
             import urllib.parse as _up

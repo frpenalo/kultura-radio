@@ -1,7 +1,7 @@
 // Temas CURADOS de Kultura Radio: 4 pieles diseñadas por la casa (nada de
 // skins libres: la marca siempre se ve profesional). Cada tema define la
 // paleta completa + los degradados del fondo, vinilo y botones.
-export const APP_VER = "v19";
+export const APP_VER = "v20";
 export const BASE = "https://kulturaradio.com";
 export const STREAM = BASE + "/stream.mp3";
 export const ARTWORK = BASE + "/icons/icon-512.png";

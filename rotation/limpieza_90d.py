@@ -37,7 +37,8 @@ def borrar(ruta, k):
 for patron, corte, k in ((ST + "/dedis/*.mp3", C90, "dedicatorias aprobadas"),
                          (ST + "/dedis/rechazadas/*", C30, "dedicatorias rechazadas"),
                          (ST + "/voz/*/aprobados/*.mp3", C90, "voz aprobados"),
-                         (ST + "/voz/*/rechazados/*.mp3", C30, "voz rechazados")):
+                         (ST + "/voz/*/rechazados/*.mp3", C30, "voz rechazados"),
+                         (ST + "/voz/agradecimientos/*.mp3", C30, "agradecimientos de aportes")):
     for f in glob.glob(patron):
         if os.path.isfile(f) and os.path.getmtime(f) < corte:
             borrar(f, k)

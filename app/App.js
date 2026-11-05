@@ -1215,6 +1215,26 @@ function Mas({ themeKey, setThemeKey }) {
         </View>
       </View>
 
+      <Text style={s.kicker}>ANÚNCIATE CON NOSOTROS</Text>
+      <View style={s.card}>
+        <Text style={s.cardH}>Tu negocio en la radio que nos une</Text>
+        <Text style={s.cardP}>Llega a toda la comunidad latina del Triangle.</Text>
+        <TextInput
+          style={s.input}
+          placeholder="Nombre y teléfono / negocio"
+          placeholderTextColor={T.muted}
+          value={contact}
+          onChangeText={setContact}
+          maxLength={120}
+        />
+        <Pressable onPress={sendAd} style={s.sendWrap}>
+          <LinearGradient colors={T.sendGrad} style={s.sendBtn}>
+            <Text style={s.sendTxt}>Pedir info</Text>
+          </LinearGradient>
+        </Pressable>
+        {!!ack && <Text style={[s.ack, { color: T.teal }]}>{ack}</Text>}
+      </View>
+
       {voz && (
         <>
           <Text style={s.kicker}>TU VOZ EN KULTURA</Text>
@@ -1231,10 +1251,11 @@ function Mas({ themeKey, setThemeKey }) {
         </>
       )}
 
-      <Text style={s.kicker}>SÍGUENOS Y COMPARTE</Text>
-      <View style={s.card}>
-        {redes.length > 0 && (
-          <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
+      {redes.length > 0 && (
+        <>
+          <Text style={s.kicker}>SÍGUENOS</Text>
+          <View style={s.card}>
+          <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
             {redes.map((r) => (
               <Pressable key={r.id} onPress={() => Linking.openURL(r.url).catch(() => {})} style={{ alignItems: "center", gap: 5 }}>
                 <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: T.surface2, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: T.faint }}>
@@ -1244,7 +1265,12 @@ function Mas({ themeKey, setThemeKey }) {
               </Pressable>
             ))}
           </View>
-        )}
+          </View>
+        </>
+      )}
+
+      <Text style={s.kicker}>COMPARTE</Text>
+      <View style={s.card}>
         <Pressable onPress={compartir} style={s.sendWrap}>
           <LinearGradient colors={T.sendGrad} style={s.sendBtn}>
             <Text style={s.sendTxt}>Comparte Kultura</Text>
@@ -1268,25 +1294,6 @@ function Mas({ themeKey, setThemeKey }) {
         </>
       )}
 
-      <Text style={s.kicker}>ANÚNCIATE CON NOSOTROS</Text>
-      <View style={s.card}>
-        <Text style={s.cardH}>Tu negocio en la radio que nos une</Text>
-        <Text style={s.cardP}>Llega a toda la comunidad latina del Triangle.</Text>
-        <TextInput
-          style={s.input}
-          placeholder="Nombre y teléfono / negocio"
-          placeholderTextColor={T.muted}
-          value={contact}
-          onChangeText={setContact}
-          maxLength={120}
-        />
-        <Pressable onPress={sendAd} style={s.sendWrap}>
-          <LinearGradient colors={T.sendGrad} style={s.sendBtn}>
-            <Text style={s.sendTxt}>Pedir info</Text>
-          </LinearGradient>
-        </Pressable>
-        {!!ack && <Text style={[s.ack, { color: T.teal }]}>{ack}</Text>}
-      </View>
       <View style={s.mission}>
         <Text style={s.missionP}>"Música, cultura y comunidad: la voz de todos los latinos del Triangle."</Text>
         <Text style={s.missionS}>KULTURA RADIO · RALEIGH, NC · APP {APP_VER}</Text>
